@@ -1,0 +1,144 @@
+{
+    "manifest_version": "1.0.9",
+    "title": "Dermatologist",
+    "page_builder": "elementor",
+    "kit_version": "2.0.1",
+    "templates": [
+        {
+            "name": "Home",
+            "screenshot": "screenshots\/home.jpg",
+            "source": "templates\/home-be0bf925cb023c4c4fd2b10b4879bbe6.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Home 2",
+            "screenshot": "screenshots\/home-2.jpg",
+            "source": "templates\/home-2-61b3d032531928cf3fc695c41043821b.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Home 3 (Pro)",
+            "screenshot": "screenshots\/home-3-pro-.jpg",
+            "source": "templates\/home-3-pro-9cf9999927909a55e87937a208371b31.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": true
+            },
+            "elementor_pro_required": true
+        },
+        {
+            "name": "About Us",
+            "screenshot": "screenshots\/about-us.jpg",
+            "source": "templates\/about-us-3c6230e1db7bd252e7c56d0a75b8fcf3.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "About Us 2",
+            "screenshot": "screenshots\/about-us-2.jpg",
+            "source": "templates\/about-us-2-c0a3d2989fc38a7a52279fe1ae0bded6.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Services",
+            "screenshot": "screenshots\/services.jpg",
+            "source": "templates\/services-51cbc89a96e5f637796b69b9b93955c3.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Pricing (Pro)",
+            "screenshot": "screenshots\/pricing-pro-.jpg",
+            "source": "templates\/pricing-pro-53cb0aed234fb700810fa0c6b9400cd9.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": true
+            },
+            "elementor_pro_required": true
+        },
+        {
+            "name": "Single Service",
+            "screenshot": "screenshots\/single-service.jpg",
+            "source": "templates\/single-service-5cfa6798af12e3ca2a61218d817bea73.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Contact Us",
+            "screenshot": "screenshots\/contact-us.jpg",
+            "source": "templates\/contact-us-11fb4d183ac79dcf8ec3ab995373b07e.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": false
+            },
+            "elementor_pro_required": false
+        },
+        {
+            "name": "Contact Us (Pro)",
+            "screenshot": "screenshots\/contact-us-pro-.jpg",
+            "source": "templates\/contact-us-pro-a0861a991f91bc3010c55b6bcaf3bac2.json",
+            "preview_url": false,
+            "type": "section",
+            "metadata": {
+                "template_type": "section",
+                "elementor_pro_required": true
+            },
+            "elementor_pro_required": true
+        }
+    ],
+    "required_plugins": [
+        {
+            "name": "Elementor",
+            "version": "2.9.6",
+            "file": "elementor\/elementor.php",
+            "author": "Elementor.com"
+        },
+        {
+            "name": "Elementor Pro",
+            "version": "2.9.6",
+            "file": "elementor-pro\/elementor-pro.php",
+            "author": "Elementor.com"
+        }
+    ],
+    "required_css": [],
+    "images": []
+}
