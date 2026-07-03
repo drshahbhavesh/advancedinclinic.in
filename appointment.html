@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book an Appointment | Advanced Skin Clinic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #7a7a7a;
+            background-color: #fcfaf9;
+            background-image: linear-gradient(60deg, #fff6f4 0%, #ffe4e2 100%);
+            min-height: 100vh;
+        }
+
+        /* ---------- Header ---------- */
+        .site-header {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 35px;
+            border-bottom: 3px solid #87008c;
+        }
+        .site-header .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: #3a3a3a;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #3a3a3a;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            color: #87008c;
+        }
+        .nav-links .appointment-btn {
+            background-color: #72bfba;
+            color: #fff !important;
+            padding: 10px 22px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        .nav-links .appointment-btn:hover {
+            background-color: #5aa9a4;
+            color: #fff !important;
+        }
+
+        /* ---------- Page content ---------- */
+        .form-content-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+        }
+        .mockup-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 650px;
+            padding: 48px 55px;
+            border-radius: 4px;
+            box-shadow: -12px 12px 57px 10px rgba(143,158,170,0.14);
+        }
+        .card-eyebrow {
+            text-align: center;
+            font-family: "Open Sans", sans-serif;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #cc9955;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #49444c;
+        }
+        .card-subtitle {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #7a7a7a;
+            margin-bottom: 35px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            width: 140px;
+            font-size: 16px;
+            color: #49444c;
+            font-weight: 600;
+        }
+        .form-field-wrapper {
+            flex-grow: 1;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .input-box {
+            width: 100%;
+            background-color: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            padding: 11px 14px;
+            font-size: 15px;
+            font-family: "Open Sans", sans-serif;
+            outline: none;
+            color: #49444c;
+        }
+        .input-box:focus {
+            border-color: #72bfba;
+        }
+        .input-box option:disabled {
+            color: #b0b0b0;
+            background-color: #f0f0f0;
+        }
+        .submit-btn-row {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-submit {
+            padding: 14px 34px;
+            font-size: 1rem;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            background-color: #72bfba;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+        .btn-submit:hover {
+            background-color: #5aa9a4;
+        }
+        @media (max-width: 600px) {
+            .site-header { flex-direction: column; gap: 14px; }
+            .nav-links { gap: 16px; justify-content: center; }
+            .mockup-card { padding: 36px 24px; }
+            .form-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .form-label { width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="index.html" class="logo">Advanced Skin Clinic</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html">About Us</a>
+            <a href="index.html">Blog</a>
+            <a href="index.html">Tele-Dermatology</a>
+            <a href="index.html">Contact Us</a>
+            <a href="appointment.html" class="appointment-btn">Appointment</a>
+        </div>
+    </header>
+
+        <div class="form-content-area">
+            <div class="mockup-card">
+                <div class="card-eyebrow">Advanced Skin Clinic</div>
+                <h2>Schedule Your Appointment</h2>
+                <p class="card-subtitle">Treatments with a 360° approach</p>
+                <form id="appointmentForm">
+                    
+                    <div class="form-row">
+                        <label for="service" class="form-label">Service</label>
+                        <div class="form-field-wrapper">
+                            <select id="service" class="input-box" required>
+                                <option value="" disabled selected>-- Choose a Service --</option>
+                                <option value="Laser Hair Removal">Laser Hair Removal</option>
+                                <option value="Consultation">Consultation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="name" class="form-label">Name</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="name" class="input-box" placeholder="John Doe" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="phone" class="form-label">Number</label>
+                        <div class="form-field-wrapper">
+                            <input type="tel" id="phone" placeholder="123-456-7890" class="input-box" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Schedule</label>
+                        <div class="form-field-wrapper">
+                            <input type="date" id="date" class="input-box" required style="width: 50%;">
+                            <select id="time" class="input-box" required style="width: 50%;">
+                                <option value="" disabled selected>-- Select Time --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="submit-btn-row">
+                        <button type="submit" class="btn-submit">Confirm Appointment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
+            authDomain: "appointment-booking-1f0d0.firebaseapp.com",
+            projectId: "appointment-booking-1f0d0",
+            storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
+            messagingSenderId: "572909099522",
+            appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const serviceInput = document.getElementById('service');
+        const dateInput = document.getElementById('date');
+        const timeSelect = document.getElementById('time');
+
+        // --- RESTRICT DATE TO TOMORROW OR LATER ---
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0'); 
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        dateInput.min = `${yyyy}-${mm}-${dd}`;
+        dateInput.value = `${yyyy}-${mm}-${dd}`; // Pre-select tomorrow automatically
+
+        // --- GENERATE AND SYNC 15-MINUTE SLOT CONFLICTS ---
+        const timeSlots = [];
+        for (let hour = 9; hour < 18; hour++) {
+            for (let min = 0; min < 60; min += 15) {
+                const hh = String(hour).padStart(2, '0');
+                const mm = String(min).padStart(2, '0');
+                timeSlots.push(`${hh}:${mm}`);
+            }
+        }
+
+        let unsubscribeSlots = null;
+
+        function updateAvailableTimeSlots() {
+            if (unsubscribeSlots) unsubscribeSlots();
+
+            const selectedService = serviceInput.value;
+            const selectedDate = dateInput.value;
+
+            if (!selectedService || !selectedDate) return;
+
+            const q = query(
+                collection(db, "appointments"),
+                where("service_type", "==", selectedService),
+                where("appointment_date", "==", selectedDate)
+            );
+
+            unsubscribeSlots = onSnapshot(q, (snapshot) => {
+                const bookedTimes = new Set();
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.appointment_time) {
+                        bookedTimes.add(data.appointment_time);
+                    }
+                });
+
+                const currentSelection = timeSelect.value;
+                timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
+
+                timeSlots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot;
+                    option.textContent = slot;
+
+                    if (bookedTimes.has(slot)) {
+                        option.disabled = true;
+                        option.textContent += ' (Booked)';
+                    }
+                    timeSelect.appendChild(option);
+                });
+
+                if (currentSelection && !bookedTimes.has(currentSelection)) {
+                    timeSelect.value = currentSelection;
+                }
+            });
+        }
+
+        serviceInput.addEventListener('change', updateAvailableTimeSlots);
+        dateInput.addEventListener('change', updateAvailableTimeSlots);
+
+        // --- HANDLE FORM SUBMISSION ---
+        document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const service = serviceInput.value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const date = dateInput.value;
+            const time = timeSelect.value;
+
+            try {
+                // Combined single transaction layout schema payload tracking
+                await addDoc(collection(db, "appointments"), {
+                    service_type: service,
+                    patient_name: name,
+                    patient_phone: phone,
+                    appointment_date: date,
+                    appointment_time: time,
+                    status: "Booked",
+                    createdAt: new Date(),
+                    // Placeholders prevent structural query errors on admin data loops
+                    payment: "", 
+                    payment_type: "",
+                    reference: "",
+                    follow_up: ""
+                });
+                
+                alert("Appointment successfully requested!");
+                document.getElementById('appointmentForm').reset();
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+                updateAvailableTimeSlots();
+            } catch (error) {
+                console.error("Error writing to cloud database: ", error);
+                alert("Something went wrong. Please try again.");
+            }
+        });
+    </script>
+</body>
+</html>

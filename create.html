@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Create Appointment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #49444c;
+            background-color: #fcfaf9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .dashboard-container {
+            width: 100%;
+            max-width: 100%;
+            min-height: 100vh;
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 30px;
+            flex-shrink: 0;
+            border-bottom: 3px solid #87008c;
+        }
+        .navbar .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #3a3a3a;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #3a3a3a;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .nav-links a:hover {
+            color: #87008c;
+        }
+        .nav-links .appointment-btn {
+            background-color: #72bfba;
+            color: #fff;
+            padding: 9px 20px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        .nav-links .appointment-btn:hover {
+            background-color: #5aa9a4;
+        }
+        .form-content-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 50px 20px;
+            background: #fdfaf8;
+        }
+        .mockup-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 650px;
+            padding: 45px 50px;
+            border-radius: 4px;
+            box-shadow: -12px 12px 57px 10px rgba(143,158,170,0.14);
+            position: relative;
+        }
+        .card-title {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 1.8rem;
+            color: #49444c;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            width: 140px;
+            font-size: 15px;
+            color: #49444c;
+            font-weight: 600;
+        }
+        .form-field-wrapper {
+            flex-grow: 1;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .input-box {
+            width: 100%;
+            background-color: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            padding: 10px 14px;
+            font-size: 15px;
+            font-family: "Open Sans", sans-serif;
+            outline: none;
+            color: #49444c;
+        }
+        .input-box:focus {
+            border-color: #72bfba;
+        }
+        .input-box option:disabled {
+            color: #b0b0b0;
+            background-color: #f0f0f0;
+        }
+        .size-short {
+            width: 90px;
+            flex-grow: 0;
+        }
+        .inline-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #49444c;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+        /* Visual status banner for auto-fetching */
+        .status-toast {
+            font-size: 13px;
+            color: #4a8f6b;
+            font-weight: 600;
+            margin-top: -15px;
+            margin-left: 140px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .submit-btn-row {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 28px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            transition: background-color 0.2s;
+        }
+        .btn-cancel {
+            background-color: #f0ece5;
+            color: #7a7a7a;
+        }
+        .btn-cancel:hover {
+            background-color: #e5e0d7;
+        }
+        .btn-submit {
+            background-color: #72bfba;
+            color: #fff;
+        }
+        .btn-submit:hover {
+            background-color: #5aa9a4;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid rgba(125,152,163,0.31) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="navbar">
+            <div class="logo">Advanced Skin Clinic — Admin</div>
+            <div class="nav-links">
+                <a href="admin.html">Dashboard</a>
+                <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
+            </div>
+        </div>
+
+        <div class="form-content-area">
+            <div class="mockup-card">
+                <div class="card-title">Create Appointment</div>
+                <form id="createAppointmentForm">
+                    
+                    <div class="form-row">
+                        <label class="form-label">Service</label>
+                        <div class="form-field-wrapper">
+                            <select id="service" class="input-box" required>
+                                <option value="Laser Hair Removal">Laser Hair Removal</option>
+                                <option value="Consultation">Consultation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label class="form-label">Schedule</label>
+                        <div class="form-field-wrapper">
+                            <input type="date" id="appDate" class="input-box" required style="width: 50%;">
+                            <select id="appTime" class="input-box" required style="width: 50%;">
+                                <option value="" disabled selected>-- Select Time --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid rgba(125,152,163,0.31); margin-bottom: 20px;">
+
+                    <div class="form-row">
+                        <label for="phone" class="form-label">Number</label>
+                        <div class="form-field-wrapper">
+                            <input type="tel" id="phone" class="input-box" placeholder="Enter number to lookup..." required>
+                        </div>
+                    </div>
+                    <div id="lookupStatus" class="status-toast">Returning patient data auto-populated!</div>
+
+                    <div class="form-row">
+                        <label for="name" class="form-label">Name</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="name" class="input-box" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="age" class="form-label">Age</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="age" class="input-box size-short" min="0">
+                            
+                            <span class="inline-label">Gender</span>
+                            <select id="gender" class="input-box" style="flex-grow: 1;">
+                                <option value="">--</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="payment" class="form-label">Payment</label>
+                        <div class="form-field-wrapper">
+                            <select id="payment" class="input-box" style="width: 40%;">
+                                <option value="">-- Rate --</option>
+                                <option value="700">700</option>
+                                <option value="300">300</option>
+                            </select>
+                            <select id="paymentType" class="input-box" style="width: 60%;">
+                                <option value="">-- Method --</option>
+                                <option value="Online">Online</option>
+                                <option value="Cash">Cash</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="reference" class="form-label">Reference</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="reference" class="input-box">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="diagnosis" class="form-label">Diagnosis</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="diagnosis" class="input-box">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="followUp" class="form-label">Follow up</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="followUp" class="input-box" placeholder="Days" min="0">
+                        </div>
+                    </div>
+
+                    <div class="submit-btn-row">
+                        <button type="button" class="btn btn-cancel" onclick="window.history.back()">Cancel</button>
+                        <button type="submit" class="btn btn-submit">Create Appointment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
+            authDomain: "appointment-booking-1f0d0.firebaseapp.com",
+            projectId: "appointment-booking-1f0d0",
+            storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
+            messagingSenderId: "572909099522",
+            appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const serviceInput = document.getElementById('service');
+        const dateInput = document.getElementById('appDate');
+        const timeSelect = document.getElementById('appTime');
+        const phoneInput = document.getElementById('phone');
+        const lookupStatus = document.getElementById('lookupStatus');
+
+        dateInput.value = new Date().toISOString().split('T')[0];
+
+        // Slot Generation
+        const timeSlots = [];
+        for (let hour = 9; hour < 18; hour++) {
+            for (let min = 0; min < 60; min += 15) {
+                const hh = String(hour).padStart(2, '0');
+                const mm = String(min).padStart(2, '0');
+                timeSlots.push(`${hh}:${mm}`);
+            }
+        }
+
+        let unsubscribeSlots = null;
+
+        function updateAvailableTimeSlots() {
+            if (unsubscribeSlots) unsubscribeSlots();
+
+            const selectedService = serviceInput.value;
+            const selectedDate = dateInput.value;
+
+            if (!selectedService || !selectedDate) return;
+
+            const q = query(
+                collection(db, "appointments"),
+                where("service_type", "==", selectedService),
+                where("appointment_date", "==", selectedDate)
+            );
+
+            unsubscribeSlots = onSnapshot(q, (snapshot) => {
+                const bookedTimes = new Set();
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.appointment_time) {
+                        bookedTimes.add(data.appointment_time);
+                    }
+                });
+
+                const currentSelection = timeSelect.value;
+                timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
+
+                timeSlots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot;
+                    option.textContent = slot;
+
+                    if (bookedTimes.has(slot)) {
+                        option.disabled = true;
+                        option.textContent += ' (Booked)';
+                    }
+                    timeSelect.appendChild(option);
+                });
+
+                if (currentSelection && !bookedTimes.has(currentSelection)) {
+                    timeSelect.value = currentSelection;
+                }
+            });
+        }
+
+        serviceInput.addEventListener('change', updateAvailableTimeSlots);
+        dateInput.addEventListener('change', updateAvailableTimeSlots);
+        updateAvailableTimeSlots();
+
+        // --- SMART RETRIEVAL SYSTEM LINK ENGINE ---
+        phoneInput.addEventListener('input', async (e) => {
+            const phoneNumber = e.target.value.trim();
+
+            // Only search if a full number sequence is written out (e.g. 10 digits)
+            // You can adjust this condition check length to match your typical format lengths
+            if (phoneNumber.length >= 10) {
+                try {
+                    // Query database looking for matching numbers, ordering by latest creation timestamp
+                    const q = query(
+                        collection(db, "appointments"),
+                        where("patient_phone", "==", phoneNumber),
+                        orderBy("createdAt", "desc"),
+                        limit(1)
+                    );
+
+                    const querySnapshot = await getDocs(q);
+                    
+                    if (!querySnapshot.empty) {
+                        const historicalRecord = querySnapshot.docs[0].data();
+                        
+                        // Auto populate matched fields into HTML inputs
+                        document.getElementById('name').value = historicalRecord.patient_name || "";
+                        document.getElementById('age').value = historicalRecord.age || "";
+                        document.getElementById('gender').value = historicalRecord.gender || "";
+                        document.getElementById('diagnosis').value = historicalRecord.diagnosis || "";
+                        
+                        // Show confirmation status
+                        lookupStatus.style.display = "block";
+                        setTimeout(() => { lookupStatus.style.opacity = '0.5'; }, 3000);
+                    } else {
+                        lookupStatus.style.display = "none";
+                    }
+                } catch (err) {
+                    console.error("Historical index lookup fetch fail: ", err);
+                    // Missing Firestore composite index warning? 
+                    // If you see an error in the console with a URL, click it to automatically create the required Firestore index!
+                }
+            } else {
+                lookupStatus.style.display = "none";
+            }
+        });
+
+        // Submission Pipeline
+        document.getElementById('createAppointmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const serviceType = serviceInput.value;
+            const appointmentDate = dateInput.value;
+            const appointmentTime = timeSelect.value;
+            
+            const name = document.getElementById('name').value;
+            const phone = phoneInput.value;
+            const age = document.getElementById('age').value;
+            const gender = document.getElementById('gender').value;
+            
+            const payment = document.getElementById('payment').value;
+            const paymentType = document.getElementById('paymentType').value;
+            const reference = document.getElementById('reference').value;
+            const diagnosis = document.getElementById('diagnosis').value;
+            const followUp = document.getElementById('followUp').value;
+
+            try {
+                await addDoc(collection(db, "appointments"), {
+                    service_type: serviceType,
+                    appointment_date: appointmentDate,
+                    appointment_time: appointmentTime,
+                    patient_name: name,
+                    patient_phone: phone,
+                    age: age ? Number(age) : "",
+                    gender: gender,
+                    payment: payment ? Number(payment) : "", 
+                    payment_type: paymentType,
+                    reference: reference,
+                    diagnosis: diagnosis,
+                    follow_up: followUp ? Number(followUp) : "", 
+                    status: "Booked",
+                    createdAt: new Date()
+                });
+
+                alert("Appointment logged successfully!");
+                document.getElementById('createAppointmentForm').reset();
+                dateInput.value = new Date().toISOString().split('T')[0];
+                lookupStatus.style.display = "none";
+                updateAvailableTimeSlots();
+            } catch (err) {
+                console.error("Error inserting record: ", err);
+                alert("Failed to create record.");
+            }
+        });
+    </script>
+</body>
+</html>
