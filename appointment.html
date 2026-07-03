@@ -345,14 +345,14 @@
                     <div class="form-row">
                         <label for="name" class="form-label">Name</label>
                         <div class="form-field-wrapper">
-                            <input type="text" id="name" class="input-box" placeholder="John Doe" required>
+                            <input type="text" id="name" class="input-box" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <label for="phone" class="form-label">Number</label>
                         <div class="form-field-wrapper">
-                            <input type="tel" id="phone" placeholder="123-456-7890" class="input-box" required>
+                            <input type="tel" id="phone" class="input-box" required>
                         </div>
                     </div>
 
@@ -500,10 +500,13 @@
                     follow_up: ""
                 });
                 
-                alert("Appointment successfully requested!");
-                document.getElementById('appointmentForm').reset();
-                dateInput.value = `${yyyy}-${mm}-${dd}`;
-                updateAvailableTimeSlots();
+                const params = new URLSearchParams({
+                    name: name,
+                    date: date,
+                    time: time,
+                    service: service
+                });
+                window.location.href = `confirmation.html?${params.toString()}`;
             } catch (error) {
                 console.error("Error writing to cloud database: ", error);
                 alert("Something went wrong. Please try again.");

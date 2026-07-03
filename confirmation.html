@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Confirmed | Advanced Skin Clinic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #7a7a7a;
+            background-color: #fcfaf9;
+            background-image: linear-gradient(60deg, #fff6f4 0%, #ffe4e2 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---------- Header ---------- */
+        .site-header {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 35px;
+            border-bottom: 3px solid #87008c;
+            flex-shrink: 0;
+        }
+        .site-header .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: #3a3a3a;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #3a3a3a;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            color: #87008c;
+        }
+        .nav-links .appointment-btn {
+            background-color: #72bfba;
+            color: #fff !important;
+            padding: 10px 22px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        .nav-links .appointment-btn:hover {
+            background-color: #5aa9a4;
+            color: #fff !important;
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 19px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: #3a3a3a;
+            border-radius: 2px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        /* ---------- Page content ---------- */
+        .confirm-content-area {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2vh 4vw;
+        }
+        .confirm-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 560px;
+            max-height: 100%;
+            overflow: hidden;
+            padding: 3vh 5vw;
+            border-radius: 4px;
+            box-shadow: -12px 12px 57px 10px rgba(143,158,170,0.14);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Checkmark */
+        .check-wrap {
+            width: clamp(56px, 11vh, 96px);
+            height: clamp(56px, 11vh, 96px);
+            margin: 0 auto clamp(12px, 2.4vh, 26px);
+            flex-shrink: 0;
+        }
+        .check-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 3;
+            stroke: #4caf82;
+            fill: none;
+            animation: circle-draw 0.6s ease-out forwards;
+        }
+        .check-mark {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            stroke-width: 4;
+            stroke: #4caf82;
+            fill: none;
+            animation: check-draw 0.4s 0.55s ease-out forwards;
+        }
+        @keyframes circle-draw {
+            to { stroke-dashoffset: 0; }
+        }
+        @keyframes check-draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .confirm-eyebrow {
+            font-family: "Open Sans", sans-serif;
+            font-size: clamp(11px, 1.7vh, 14px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #cc9955;
+            margin-bottom: clamp(4px, 1vh, 10px);
+            flex-shrink: 0;
+        }
+        h1 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: clamp(20px, 3.8vh, 34px);
+            line-height: 1.2;
+            margin-bottom: clamp(4px, 1vh, 10px);
+            color: #49444c;
+            flex-shrink: 0;
+        }
+        .confirm-subtitle {
+            font-size: clamp(12px, 1.9vh, 15px);
+            color: #7a7a7a;
+            margin-bottom: clamp(14px, 3vh, 34px);
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .details-box {
+            background-color: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 4px;
+            padding: clamp(14px, 2.2vh, 26px) clamp(16px, 4vw, 28px);
+            text-align: left;
+            margin-bottom: clamp(14px, 3vh, 34px);
+            flex-shrink: 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(7px, 1.4vh, 12px) 0;
+            border-bottom: 1px dashed rgba(125,152,163,0.35);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-size: clamp(11px, 1.5vh, 13px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #7a7a7a;
+        }
+        .detail-value {
+            font-size: clamp(13px, 1.9vh, 16px);
+            font-weight: 600;
+            color: #49444c;
+            text-align: right;
+        }
+
+        .btn-home {
+            display: inline-block;
+            padding: clamp(11px, 2vh, 14px) clamp(24px, 6vw, 40px);
+            font-size: clamp(13px, 1.9vh, 16px);
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            background-color: #72bfba;
+            color: #fff !important;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            flex-shrink: 0;
+        }
+        .btn-home:hover {
+            background-color: #5aa9a4;
+        }
+
+        @media (max-width: 600px) {
+            .site-header {
+                flex-wrap: wrap;
+                padding: 1.6vh 4vw;
+                position: relative;
+            }
+            .site-header .logo { font-size: 4.6vw; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+                margin-top: 1.6vh;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 1.4vh 4px;
+                border-top: 1px solid rgba(125,152,163,0.25);
+                text-align: center;
+                font-size: 14px;
+            }
+            .nav-links .appointment-btn {
+                margin-top: 1vh;
+                text-align: center;
+            }
+            .confirm-content-area {
+                padding: 1.6vh 5vw;
+            }
+            .confirm-card {
+                padding: 3vh 6vw;
+                box-shadow: none;
+            }
+            .btn-home {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="index.html" class="logo">Advanced Skin Clinic</a>
+        <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="index.html">About Us</a>
+            <a href="index.html">Blog</a>
+            <a href="index.html">Tele-Dermatology</a>
+            <a href="index.html">Contact Us</a>
+            <a href="appointment.html" class="appointment-btn">Appointment</a>
+        </div>
+    </header>
+
+    <div class="confirm-content-area">
+        <div class="confirm-card">
+            <div class="check-wrap">
+                <svg viewBox="0 0 52 52" width="100%" height="100%">
+                    <circle class="check-circle" cx="26" cy="26" r="24" />
+                    <path class="check-mark" d="M14 27l7 7 17-17" />
+                </svg>
+            </div>
+
+            <div class="confirm-eyebrow">Advanced Skin Clinic</div>
+            <h1>Appointment Confirmed</h1>
+            <p class="confirm-subtitle">We've received your request. We'll see you soon</p>
+
+            <div class="details-box" id="detailsBox">
+                <div class="detail-row">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value" id="detailName">&mdash;</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Service</span>
+                    <span class="detail-value" id="detailService">&mdash;</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date</span>
+                    <span class="detail-value" id="detailDate">&mdash;</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time</span>
+                    <span class="detail-value" id="detailTime">&mdash;</span>
+                </div>
+            </div>
+
+            <a href="index.html" class="btn-home">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+
+        // --- Populate booking details from URL query params ---
+        const params = new URLSearchParams(window.location.search);
+        const name = params.get('name');
+        const service = params.get('service');
+        const date = params.get('date');
+        const time = params.get('time');
+
+        if (name) document.getElementById('detailName').textContent = name;
+        if (service) document.getElementById('detailService').textContent = service;
+
+        if (date) {
+            const parsedDate = new Date(`${date}T00:00:00`);
+            if (!isNaN(parsedDate)) {
+                document.getElementById('detailDate').textContent = parsedDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else {
+                document.getElementById('detailDate').textContent = date;
+            }
+        }
+
+        if (time) {
+            const [hh, mm] = time.split(':');
+            const timeDate = new Date();
+            timeDate.setHours(Number(hh), Number(mm), 0);
+            document.getElementById('detailTime').textContent = timeDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // If someone lands here directly with no details, hide the details box gracefully
+        if (!name && !service && !date && !time) {
+            document.getElementById('detailsBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
