@@ -15,6 +15,7 @@
         }
         html, body {
             height: 100%;
+            overflow-x: hidden;
         }
         body {
             font-family: "Open Sans", sans-serif;
@@ -190,12 +191,22 @@
             background-color: #5aa9a4;
         }
         @media (max-width: 600px) {
+            html, body {
+                height: 100dvh;
+                overflow: hidden;
+                overscroll-behavior: none;
+            }
+            body {
+                display: flex;
+                flex-direction: column;
+            }
             .site-header {
                 flex-wrap: wrap;
-                padding: 12px 18px;
+                flex-shrink: 0;
+                padding: 1.6vh 4vw;
                 position: relative;
             }
-            .site-header .logo { font-size: 18px; }
+            .site-header .logo { font-size: 4.6vw; }
             .hamburger { display: flex; }
             .nav-links {
                 display: none;
@@ -203,48 +214,77 @@
                 align-items: stretch;
                 width: 100%;
                 gap: 0;
-                margin-top: 14px;
+                margin-top: 1.6vh;
             }
             .nav-links.open { display: flex; }
             .nav-links a {
-                padding: 10px 4px;
+                padding: 1.4vh 4px;
                 border-top: 1px solid rgba(125,152,163,0.25);
                 text-align: center;
                 font-size: 14px;
             }
             .nav-links .appointment-btn {
-                margin-top: 8px;
+                margin-top: 1vh;
                 text-align: center;
             }
             .form-content-area {
-                padding: 14px 14px;
-                align-items: flex-start;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+                padding: 1.6vh 4vw;
+                display: flex;
+                align-items: stretch;
+                justify-content: center;
             }
-            .mockup-card { padding: 18px 18px; box-shadow: none; }
+            .mockup-card {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 2.4vh 6vw;
+                box-shadow: none;
+            }
             .card-eyebrow {
-                font-size: 0.72em;
+                flex-shrink: 0;
+                font-size: clamp(10px, 1.8vh, 12px);
                 letter-spacing: 1.5px;
-                margin-bottom: 4px;
+                margin-bottom: clamp(4px, 0.8vh, 8px);
             }
             h2 {
-                font-size: 1.25rem;
-                margin-bottom: 3px;
+                flex-shrink: 0;
+                font-size: clamp(19px, 3.6vh, 25px);
+                line-height: 1.15;
+                margin-bottom: clamp(3px, 0.6vh, 6px);
             }
             .card-subtitle {
-                font-size: 0.78rem;
-                margin-bottom: 14px;
+                flex-shrink: 0;
+                font-size: clamp(11px, 1.9vh, 13px);
+                margin-bottom: clamp(10px, 2vh, 18px);
+            }
+            #appointmentForm {
+                flex: 0 1 auto;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+                gap: clamp(9px, 1.8vh, 16px);
             }
             .form-row {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 4px;
-                margin-bottom: 10px;
+                gap: clamp(3px, 0.7vh, 6px);
+                margin-bottom: 0;
             }
-            .form-label { width: auto; font-size: 13px; }
+            .form-label {
+                width: auto;
+                font-size: clamp(13px, 2.1vh, 15px);
+                font-weight: 600;
+            }
             .form-field-wrapper {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 8px;
+                gap: clamp(6px, 1.1vh, 10px);
                 width: 100%;
             }
             .form-field-wrapper input,
@@ -252,23 +292,18 @@
                 width: 100% !important;
             }
             .input-box {
-                padding: 8px 10px;
-                font-size: 13px;
+                padding: clamp(9px, 1.6vh, 12px) 12px;
+                font-size: clamp(13px, 2vh, 15px);
             }
             .submit-btn-row {
                 justify-content: stretch;
-                margin-top: 12px;
+                margin-top: clamp(2px, 0.5vh, 4px);
             }
             .btn-submit {
                 width: 100%;
-                padding: 11px 20px;
-                font-size: 0.9rem;
+                padding: clamp(11px, 2vh, 15px) 20px;
+                font-size: clamp(13px, 2vh, 15px);
             }
-        }
-        @media (max-width: 380px) {
-            .site-header .logo { font-size: 16px; }
-            .mockup-card { padding: 14px 14px; }
-            h2 { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -291,18 +326,18 @@
 
         <div class="form-content-area">
             <div class="mockup-card">
-                <br>
                 <h2>Schedule Your Appointment</h2>
+                <br>
                 <form id="appointmentForm">
-                    <br>
                     
                     <div class="form-row">
                         <label for="service" class="form-label">Service</label>
                         <div class="form-field-wrapper">
                             <select id="service" class="input-box" required>
                                 <option value="" disabled selected>-- Choose a Service --</option>
-                                <option value="Laser Hair Removal">Laser Hair Removal</option>
                                 <option value="Consultation">Consultation</option>
+                                <option value="Laser Hair Removal">Laser Hair Removal</option>
+
                             </select>
                         </div>
                     </div>
