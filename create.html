@@ -300,8 +300,9 @@
                         <label class="form-label">Service</label>
                         <div class="form-field-wrapper">
                             <select id="service" class="input-box" required>
-                                <option value="Laser Hair Removal">Laser Hair Removal</option>
                                 <option value="Consultation">Consultation</option>
+                                <option value="Laser Hair Removal">Laser Hair Removal</option>
+
                             </select>
                         </div>
                     </div>
@@ -351,11 +352,7 @@
                     <div class="form-row">
                         <label for="payment" class="form-label">Payment</label>
                         <div class="form-field-wrapper">
-                            <select id="payment" class="input-box" style="width: 40%;">
-                                <option value="">-- Rate --</option>
-                                <option value="700">700</option>
-                                <option value="300">300</option>
-                            </select>
+                            <input type="number" id="payment" class="input-box" placeholder="Amount" min="0" style="width: 40%;">
                             <select id="paymentType" class="input-box" style="width: 60%;">
                                 <option value="">-- Method --</option>
                                 <option value="Online">Online</option>
@@ -368,20 +365,6 @@
                         <label for="reference" class="form-label">Reference</label>
                         <div class="form-field-wrapper">
                             <input type="text" id="reference" class="input-box">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="diagnosis" class="form-label">Diagnosis</label>
-                        <div class="form-field-wrapper">
-                            <input type="text" id="diagnosis" class="input-box">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <label for="followUp" class="form-label">Follow up</label>
-                        <div class="form-field-wrapper">
-                            <input type="number" id="followUp" class="input-box" placeholder="Days" min="0">
                         </div>
                     </div>
 
@@ -429,13 +412,18 @@
         dateInput.value = new Date().toISOString().split('T')[0];
 
         // Slot Generation
-        const timeSlots = [];
-        for (let hour = 9; hour < 18; hour++) {
-            for (let min = 0; min < 60; min += 15) {
-                const hh = String(hour).padStart(2, '0');
-                const mm = String(min).padStart(2, '0');
-                timeSlots.push(`${hh}:${mm}`);
+        // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 15-minute slots
+        function generateTimeSlots(service) {
+            const interval = service === 'Laser Hair Removal' ? 60 : 15;
+            const slots = [];
+            for (let hour = 9; hour < 18; hour++) {
+                for (let min = 0; min < 60; min += interval) {
+                    const hh = String(hour).padStart(2, '0');
+                    const mm = String(min).padStart(2, '0');
+                    slots.push(`${hh}:${mm}`);
+                }
             }
+            return slots;
         }
 
         let unsubscribeSlots = null;
@@ -447,6 +435,8 @@
             const selectedDate = dateInput.value;
 
             if (!selectedService || !selectedDate) return;
+
+            const timeSlots = generateTimeSlots(selectedService);
 
             const q = query(
                 collection(db, "appointments"),
@@ -513,7 +503,6 @@
                         document.getElementById('name').value = historicalRecord.patient_name || "";
                         document.getElementById('age').value = historicalRecord.age || "";
                         document.getElementById('gender').value = historicalRecord.gender || "";
-                        document.getElementById('diagnosis').value = historicalRecord.diagnosis || "";
                         
                         // Show confirmation status
                         lookupStatus.style.display = "block";
@@ -547,8 +536,6 @@
             const payment = document.getElementById('payment').value;
             const paymentType = document.getElementById('paymentType').value;
             const reference = document.getElementById('reference').value;
-            const diagnosis = document.getElementById('diagnosis').value;
-            const followUp = document.getElementById('followUp').value;
 
             try {
                 await addDoc(collection(db, "appointments"), {
@@ -562,8 +549,7 @@
                     payment: payment ? Number(payment) : "", 
                     payment_type: paymentType,
                     reference: reference,
-                    diagnosis: diagnosis,
-                    follow_up: followUp ? Number(followUp) : "", 
+                    follow_up: "",
                     status: "Booked",
                     createdAt: new Date()
                 });

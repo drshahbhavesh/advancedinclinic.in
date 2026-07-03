@@ -414,14 +414,19 @@
         dateInput.min = `${yyyy}-${mm}-${dd}`;
         dateInput.value = `${yyyy}-${mm}-${dd}`; // Pre-select tomorrow automatically
 
-        // --- GENERATE AND SYNC 15-MINUTE SLOT CONFLICTS ---
-        const timeSlots = [];
-        for (let hour = 9; hour < 18; hour++) {
-            for (let min = 0; min < 60; min += 15) {
-                const hh = String(hour).padStart(2, '0');
-                const mm = String(min).padStart(2, '0');
-                timeSlots.push(`${hh}:${mm}`);
+        // --- GENERATE AND SYNC SLOT CONFLICTS ---
+        // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 15-minute slots
+        function generateTimeSlots(service) {
+            const interval = service === 'Laser Hair Removal' ? 60 : 15;
+            const slots = [];
+            for (let hour = 9; hour < 18; hour++) {
+                for (let min = 0; min < 60; min += interval) {
+                    const hh = String(hour).padStart(2, '0');
+                    const mm = String(min).padStart(2, '0');
+                    slots.push(`${hh}:${mm}`);
+                }
             }
+            return slots;
         }
 
         let unsubscribeSlots = null;
@@ -433,6 +438,8 @@
             const selectedDate = dateInput.value;
 
             if (!selectedService || !selectedDate) return;
+
+            const timeSlots = generateTimeSlots(selectedService);
 
             const q = query(
                 collection(db, "appointments"),
