@@ -15,6 +15,7 @@
         }
         html, body {
             height: 100%;
+            overflow: hidden;
         }
         body {
             font-family: "Open Sans", sans-serif;
@@ -27,7 +28,7 @@
         .dashboard-container {
             width: 100%;
             max-width: 100%;
-            min-height: 100vh;
+            height: 100vh;
             background: #ffffff;
             color: #49444c;
             border-radius: 0;
@@ -175,10 +176,12 @@
             background-color: #5aa9a4;
         }
         .table-wrapper {
-            flex-grow: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             background: #fff;
-            overflow-x: auto;
+            overflow: auto;
             -webkit-overflow-scrolling: touch;
+            position: relative;
         }
         .appointments-table {
             width: 100%;
@@ -232,6 +235,41 @@
             color: #7a7a7a;
             font-style: italic;
             font-size: 15px;
+        }
+        #tableFooter {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+        }
+        .totals-row td {
+            position: sticky;
+            bottom: 0;
+            background-color: #f5f2ea;
+            border-top: 2px solid #72bfba;
+            font-family: "Open Sans", sans-serif;
+            padding: 14px 16px;
+        }
+        .totals-label {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+            color: #49444c;
+        }
+        .totals-value {
+            font-weight: 700;
+            font-size: 15px;
+            color: #2f7a5f;
+            white-space: nowrap;
+        }
+        #totalBreakdown {
+            white-space: nowrap;
+        }
+        .breakdown-divider {
+            display: inline-block;
+            margin: 0 12px;
+            color: rgba(47, 122, 95, 0.4);
+            font-weight: 400;
         }
         @media (max-width: 700px) {
             .navbar {
@@ -327,6 +365,16 @@
                 </thead>
                 <tbody id="tableBody">
                     </tbody>
+                <tfoot id="tableFooter" style="display: none;">
+                    <tr class="totals-row">
+                        <td colspan="3" class="totals-label">Totals for the day</td>
+                        <td id="totalEarned" class="totals-value">₹0</td>
+                        <td colspan="2" id="totalBreakdown" class="totals-value">
+                            <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
+                        </td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
             </table>
             <div id="noDataMessage" class="no-data" style="display: none;">No appointments scheduled for this selection.</div>
         </div>
@@ -362,6 +410,10 @@
         const dateFilter = document.getElementById('dateFilter');
         const tableBody = document.getElementById('tableBody');
         const noDataMessage = document.getElementById('noDataMessage');
+        const tableFooter = document.getElementById('tableFooter');
+        const totalEarnedEl = document.getElementById('totalEarned');
+        const totalCashEl = document.getElementById('totalCashText');
+        const totalOnlineEl = document.getElementById('totalOnlineText');
 
         const today = new Date();
         dateFilter.value = today.toISOString().split('T')[0];
@@ -385,6 +437,7 @@
                 
                 if (snapshot.empty) {
                     noDataMessage.style.display = "block";
+                    tableFooter.style.display = "none";
                     return;
                 }
                 noDataMessage.style.display = "none";
@@ -430,6 +483,24 @@
                     `;
                     tableBody.appendChild(tr);
                 });
+
+                // --- Calculate daily totals for the currently filtered service ---
+                let totalEarned = 0;
+                let totalCash = 0;
+                let totalOnline = 0;
+                docs.forEach(data => {
+                    const amount = Number(data.payment) || 0;
+                    totalEarned += amount;
+                    if (data.payment_type === 'Cash') {
+                        totalCash += amount;
+                    } else if (data.payment_type === 'Online') {
+                        totalOnline += amount;
+                    }
+                });
+                totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
+                totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
+                totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
+                tableFooter.style.display = "";
 
                 // Global element intercept event binding engine
                 document.querySelectorAll('.cell-action').forEach(element => {
