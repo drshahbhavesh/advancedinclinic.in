@@ -182,7 +182,7 @@
         }
         .appointments-table {
             width: 100%;
-            min-width: 900px;
+            min-width: 1080px;
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -201,13 +201,15 @@
             color: #7a7a7a;
             background-color: #fdfaf8;
         }
-        .col-time { width: 10%; }
-        .col-name { width: 20%; }
-        .col-phone { width: 15%; }
-        .col-payment { width: 13%; }
-        .col-type { width: 12%; }
-        .col-ref { width: 15%; }
-        .col-follow { width: 15%; }
+        .col-time { width: 8%; }
+        .col-name { width: 15%; }
+        .col-phone { width: 12%; }
+        .col-payment { width: 10%; }
+        .col-type { width: 10%; }
+        .col-ref { width: 12%; }
+        .col-diagnosis { width: 16%; }
+        .col-callback { width: 8%; }
+        .col-follow { width: 9%; }
 
         .cell-input, .cell-select {
             width: 100%;
@@ -294,8 +296,8 @@
 
         <div class="controls-bar">
             <select id="serviceFilter" class="service-select">
-                <option value="Laser Hair Removal">Laser</option>
                 <option value="Consultation">Consultation</option>
+                <option value="Laser Hair Removal">Laser</option>
             </select>
 
             <div class="date-picker-container">
@@ -318,6 +320,8 @@
                         <th class="col-payment">Payment</th>
                         <th class="col-type">Type</th>
                         <th class="col-ref">Reference</th>
+                        <th class="col-diagnosis">Diagnosis</th>
+                        <th class="col-callback">Call back</th>
                         <th class="col-follow">Follow up</th>
                     </tr>
                 </thead>
@@ -392,11 +396,6 @@
                 docs.forEach(data => {
                     const tr = document.createElement('tr');
 
-                    // Payment Fixed Rate Options Evaluator
-                    const is700 = String(data.payment) === '700' ? 'selected' : '';
-                    const is300 = String(data.payment) === '300' ? 'selected' : '';
-                    const isPaymentUnset = (!is700 && !is300) ? 'selected' : '';
-
                     // Payment Method Options Evaluator
                     const isOnline = data.payment_type === 'Online' ? 'selected' : '';
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
@@ -407,11 +406,7 @@
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td>
-                            <select class="cell-select cell-action" data-id="${data.id}" data-field="payment">
-                                <option value="" ${isPaymentUnset}>--</option>
-                                <option value="700" ${is700}>700</option>
-                                <option value="300" ${is300}>300</option>
-                            </select>
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0">
                         </td>
                         <td>
                             <select class="cell-select cell-action" data-id="${data.id}" data-field="payment_type">
@@ -422,6 +417,12 @@
                         </td>
                         <td>
                             <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="...">
+                        </td>
+                        <td>
+                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="...">
+                        </td>
+                        <td>
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0">
                         </td>
                         <td>
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0">
@@ -439,8 +440,8 @@
                         const fieldName = e.target.getAttribute('data-field');
                         let newValue = e.target.value;
 
-                        // Force cast both payment and follow_up mutations to proper database Numbers
-                        if ((fieldName === 'payment' || fieldName === 'follow_up') && newValue !== "") {
+                        // Force cast payment, follow_up, and call_back mutations to proper database Numbers
+                        if ((fieldName === 'payment' || fieldName === 'follow_up' || fieldName === 'call_back') && newValue !== "") {
                             newValue = Number(newValue);
                         }
 
