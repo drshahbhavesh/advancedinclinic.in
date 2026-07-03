@@ -69,6 +69,29 @@
             background-color: #5aa9a4;
             color: #fff !important;
         }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 19px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: #3a3a3a;
+            border-radius: 2px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
         /* ---------- Page content ---------- */
         .form-content-area {
@@ -167,11 +190,85 @@
             background-color: #5aa9a4;
         }
         @media (max-width: 600px) {
-            .site-header { flex-direction: column; gap: 14px; }
-            .nav-links { gap: 16px; justify-content: center; }
-            .mockup-card { padding: 36px 24px; }
-            .form-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .form-label { width: auto; }
+            .site-header {
+                flex-wrap: wrap;
+                padding: 12px 18px;
+                position: relative;
+            }
+            .site-header .logo { font-size: 18px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+                margin-top: 14px;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 10px 4px;
+                border-top: 1px solid rgba(125,152,163,0.25);
+                text-align: center;
+                font-size: 14px;
+            }
+            .nav-links .appointment-btn {
+                margin-top: 8px;
+                text-align: center;
+            }
+            .form-content-area {
+                padding: 14px 14px;
+                align-items: flex-start;
+            }
+            .mockup-card { padding: 18px 18px; box-shadow: none; }
+            .card-eyebrow {
+                font-size: 0.72em;
+                letter-spacing: 1.5px;
+                margin-bottom: 4px;
+            }
+            h2 {
+                font-size: 1.25rem;
+                margin-bottom: 3px;
+            }
+            .card-subtitle {
+                font-size: 0.78rem;
+                margin-bottom: 14px;
+            }
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+            .form-label { width: auto; font-size: 13px; }
+            .form-field-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                width: 100%;
+            }
+            .form-field-wrapper input,
+            .form-field-wrapper select {
+                width: 100% !important;
+            }
+            .input-box {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            .submit-btn-row {
+                justify-content: stretch;
+                margin-top: 12px;
+            }
+            .btn-submit {
+                width: 100%;
+                padding: 11px 20px;
+                font-size: 0.9rem;
+            }
+        }
+        @media (max-width: 380px) {
+            .site-header .logo { font-size: 16px; }
+            .mockup-card { padding: 14px 14px; }
+            h2 { font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -179,7 +276,10 @@
 
     <header class="site-header">
         <a href="index.html" class="logo">Advanced Skin Clinic</a>
-        <div class="nav-links">
+        <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="navLinks">
             <a href="index.html">Home</a>
             <a href="index.html">About Us</a>
             <a href="index.html">Blog</a>
@@ -191,10 +291,10 @@
 
         <div class="form-content-area">
             <div class="mockup-card">
-                <div class="card-eyebrow">Advanced Skin Clinic</div>
+                <br>
                 <h2>Schedule Your Appointment</h2>
-                <p class="card-subtitle">Treatments with a 360° approach</p>
                 <form id="appointmentForm">
+                    <br>
                     
                     <div class="form-row">
                         <label for="service" class="form-label">Service</label>
@@ -210,14 +310,14 @@
                     <div class="form-row">
                         <label for="name" class="form-label">Name</label>
                         <div class="form-field-wrapper">
-                            <input type="text" id="name" class="input-box" placeholder="John Doe" required>
+                            <input type="text" id="name" class="input-box" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <label for="phone" class="form-label">Number</label>
                         <div class="form-field-wrapper">
-                            <input type="tel" id="phone" placeholder="123-456-7890" class="input-box" required>
+                            <input type="tel" id="phone" class="input-box" required>
                         </div>
                     </div>
 
@@ -237,6 +337,16 @@
                 </form>
             </div>
         </div>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";

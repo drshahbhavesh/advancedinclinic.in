@@ -79,6 +79,29 @@
         .nav-links .appointment-btn:hover {
             background-color: #5aa9a4;
         }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 19px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: #3a3a3a;
+            border-radius: 2px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
         .controls-bar {
             display: flex;
             justify-content: space-between;
@@ -154,15 +177,18 @@
         .table-wrapper {
             flex-grow: 1;
             background: #fff;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .appointments-table {
             width: 100%;
+            min-width: 900px;
             border-collapse: collapse;
             table-layout: fixed;
         }
         .appointments-table th, .appointments-table td {
             border: 1px solid rgba(125,152,163,0.31);
-            padding: 12px;
+            padding: 14px 16px;
             text-align: left;
             font-size: 15px;
         }
@@ -205,14 +231,62 @@
             font-style: italic;
             font-size: 15px;
         }
+        @media (max-width: 700px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 16px 20px;
+                position: relative;
+            }
+            .navbar .logo { font-size: 17px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+                margin-top: 14px;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 12px 4px;
+                border-top: 1px solid rgba(125,152,163,0.25);
+                text-align: center;
+                font-size: 15px;
+            }
+            .nav-links .appointment-btn {
+                margin-top: 10px;
+                text-align: center;
+            }
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 20px;
+            }
+            .service-select { text-align: center; }
+            .date-picker-container { justify-content: center; }
+            .create-btn { width: 100%; }
+            .table-scroll-hint {
+                display: block;
+                text-align: center;
+                font-size: 12px;
+                color: #7a7a7a;
+                padding: 8px 0 0;
+                background: #fdfaf8;
+            }
+        }
+        .table-scroll-hint { display: none; }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
         <div class="navbar">
-            <div class="logo">Advanced Skin Clinic — Admin</div>
-            <div class="nav-links">
+            <div class="logo">Admin Dashboard</div>
+            <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="navLinks">
                 <a href="index.html">Site</a>
                 <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
             </div>
@@ -233,6 +307,7 @@
             <button class="create-btn" onclick="window.location.href='create.html'">Create</button>
         </div>
 
+        <div class="table-scroll-hint">← Swipe to see more columns →</div>
         <div class="table-wrapper">
             <table class="appointments-table">
                 <thead>
@@ -252,6 +327,16 @@
             <div id="noDataMessage" class="no-data" style="display: none;">No appointments scheduled for this selection.</div>
         </div>
     </div>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";

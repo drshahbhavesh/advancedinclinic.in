@@ -77,6 +77,29 @@
         .nav-links .appointment-btn:hover {
             background-color: #5aa9a4;
         }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 19px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: #3a3a3a;
+            border-radius: 2px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
         .form-content-area {
             flex-grow: 1;
             display: flex;
@@ -194,14 +217,75 @@
             border: 0;
             border-top: 1px solid rgba(125,152,163,0.31) !important;
         }
+        @media (max-width: 700px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 16px 20px;
+                position: relative;
+            }
+            .navbar .logo { font-size: 17px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+                margin-top: 14px;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 12px 4px;
+                border-top: 1px solid rgba(125,152,163,0.25);
+                text-align: center;
+                font-size: 15px;
+            }
+            .nav-links .appointment-btn {
+                margin-top: 10px;
+                text-align: center;
+            }
+        }
+        @media (max-width: 600px) {
+            .form-content-area { padding: 30px 14px; }
+            .mockup-card { padding: 30px 20px; }
+            .card-title { font-size: 1.5rem; }
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+            .form-label { width: auto; }
+            .form-field-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                width: 100%;
+            }
+            .form-field-wrapper input,
+            .form-field-wrapper select {
+                width: 100% !important;
+            }
+            .size-short { width: 100% !important; }
+            .inline-label { margin-left: 0; }
+            .status-toast { margin-left: 0; }
+            .submit-btn-row {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
         <div class="navbar">
-            <div class="logo">Advanced Skin Clinic — Admin</div>
-            <div class="nav-links">
+            <div class="logo">Admin Create</div>
+            <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="navLinks">
                 <a href="admin.html">Dashboard</a>
                 <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
             </div>
@@ -309,6 +393,16 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
