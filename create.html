@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Create Appointment</title>
+    <title>Admin - Manage Appointment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -281,7 +281,7 @@
 
     <div class="dashboard-container">
         <div class="navbar">
-            <div class="logo">Admin Create</div>
+            <div class="logo" id="navLogo">Admin Create</div>
             <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
                 <span></span><span></span><span></span>
             </button>
@@ -293,7 +293,7 @@
 
         <div class="form-content-area">
             <div class="mockup-card">
-                <div class="card-title">Create Appointment</div>
+                <div class="card-title" id="formTitle">Create Appointment</div>
                 <form id="createAppointmentForm">
                     
                     <div class="form-row">
@@ -315,7 +315,6 @@
                                     <option value="" disabled selected>-- Select Time --</option>
                                 </select>
                             </div>
-                            <!-- Standard native HTML time selector wheel wheel option handles local 12-hour engine options automatically -->
                             <input type="time" id="customTimeInput" class="input-box" style="display: none; border-color: #72bfba; background-color: #fafcfb;">
                         </div>
                     </div>
@@ -376,7 +375,7 @@
 
                     <div class="submit-btn-row">
                         <button type="button" class="btn btn-cancel" onclick="window.history.back()">Cancel</button>
-                        <button type="submit" class="btn btn-submit">Create Appointment</button>
+                        <button type="submit" id="submitBtn" class="btn btn-submit">Create Appointment</button>
                     </div>
                 </form>
             </div>
@@ -395,7 +394,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -417,6 +416,13 @@
         const nameInput = document.getElementById('name');
         const nameSelector = document.getElementById('nameSelector');
         const lookupStatus = document.getElementById('lookupStatus');
+        const submitBtn = document.getElementById('submitBtn');
+        const formTitle = document.getElementById('formTitle');
+        const navLogo = document.getElementById('navLogo');
+
+        // Parse explicit Edit Mode parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('editId');
 
         dateInput.value = new Date().toISOString().split('T')[0];
 
@@ -444,7 +450,7 @@
 
         let unsubscribeSlots = null;
 
-        function updateAvailableTimeSlots() {
+        function updateAvailableTimeSlots(callback) {
             if (unsubscribeSlots) unsubscribeSlots();
 
             const selectedService = serviceInput.value;
@@ -463,9 +469,12 @@
             unsubscribeSlots = onSnapshot(q, (snapshot) => {
                 const bookedTimes = new Set();
                 snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.appointment_time) {
-                        bookedTimes.add(data.appointment_time);
+                    // Exclude current edited record from being marked as 'Booked' so it remains selectable
+                    if (doc.id !== editId) {
+                        const data = doc.data();
+                        if (data.appointment_time) {
+                            bookedTimes.add(data.appointment_time);
+                        }
                     }
                 });
 
@@ -492,6 +501,8 @@
                 if (currentSelection && !bookedTimes.has(currentSelection)) {
                     timeSelect.value = currentSelection;
                 }
+
+                if (callback) callback(timeSlots);
             });
         }
 
@@ -506,9 +517,63 @@
             }
         });
 
-        serviceInput.addEventListener('change', updateAvailableTimeSlots);
-        dateInput.addEventListener('change', updateAvailableTimeSlots);
-        updateAvailableTimeSlots();
+        serviceInput.addEventListener('change', () => updateAvailableTimeSlots());
+        dateInput.addEventListener('change', () => updateAvailableTimeSlots());
+
+        // --- NEW: EDIT MODE ROUTING INITIALIZER ---
+        async function checkEditMode() {
+            if (!editId) {
+                // Regular creation mode configuration
+                updateAvailableTimeSlots();
+                return;
+            }
+
+            // Adjust UI layout presentation text to reflect Edit Mode
+            formTitle.textContent = "Edit Appointment";
+            navLogo.textContent = "Admin Edit";
+            submitBtn.textContent = "Update Appointment";
+
+            try {
+                const docRef = doc(db, "appointments", editId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    // Pre-fill primary input layouts
+                    serviceInput.value = data.service_type || "Consultation";
+                    dateInput.value = data.appointment_date || "";
+                    phoneInput.value = data.patient_phone || "";
+                    nameInput.value = data.patient_name || "";
+                    document.getElementById('age').value = data.age || "";
+                    document.getElementById('gender').value = data.gender || "";
+                    document.getElementById('payment').value = data.payment || "";
+                    document.getElementById('paymentType').value = data.payment_type || "";
+                    document.getElementById('reference').value = data.reference || "";
+
+                    // Sync slots and configure time selector
+                    updateAvailableTimeSlots((slots) => {
+                        const targetTime = data.appointment_time || "";
+                        const standardSlotExists = slots.some(slot => slot.value === targetTime);
+
+                        if (standardSlotExists) {
+                            timeSelect.value = targetTime;
+                        } else if (targetTime) {
+                            // If it's a custom time entry, fallback into manual layout views
+                            timeSelect.value = "CUSTOM_MANUAL";
+                            customTimeInput.style.display = "block";
+                            customTimeInput.setAttribute('required', 'true');
+                            customTimeInput.value = targetTime;
+                        }
+                    });
+                } else {
+                    alert("Requested appointment record not found.");
+                    window.location.href = "admin.html";
+                }
+            } catch (err) {
+                console.error("Error loading document for editing: ", err);
+            }
+        }
 
         let matchedPatientsMap = {};
 
@@ -525,8 +590,6 @@
                 } else {
                     document.getElementById('reference').value = `Last visit: ${record.appointment_date}`;
                 }
-            } else {
-                document.getElementById('reference').value = "";
             }
             
             lookupStatus.style.display = "block";
@@ -547,6 +610,7 @@
         }
 
         phoneInput.addEventListener('input', async (e) => {
+            if (editId) return; // Disable automatic lookups during live edit operations
             const phoneNumber = e.target.value.trim();
 
             if (phoneNumber.length >= 10) {
@@ -633,7 +697,6 @@
             
             let appointmentTime = timeSelect.value;
             if (appointmentTime === "CUSTOM_MANUAL") {
-                // Extracts internal value (always natively formatted as 24h 'HH:MM') from time widget structure
                 appointmentTime = customTimeInput.value.trim();
             }
 
@@ -646,36 +709,51 @@
             const paymentType = document.getElementById('paymentType').value;
             const reference = document.getElementById('reference').value;
 
-            try {
-                await addDoc(collection(db, "appointments"), {
-                    service_type: serviceType,
-                    appointment_date: appointmentDate,
-                    appointment_time: appointmentTime,
-                    patient_name: name,
-                    patient_phone: phone,
-                    age: age ? Number(age) : "",
-                    gender: gender,
-                    payment: payment ? Number(payment) : "", 
-                    payment_type: paymentType,
-                    reference: reference,
-                    follow_up: "",
-                    call_back: "",
-                    status: "Booked",
-                    createdAt: new Date()
-                });
+            const appointmentPayload = {
+                service_type: serviceType,
+                appointment_date: appointmentDate,
+                appointment_time: appointmentTime,
+                patient_name: name,
+                patient_phone: phone,
+                age: age ? Number(age) : "",
+                gender: gender,
+                payment: payment ? Number(payment) : "", 
+                payment_type: paymentType,
+                reference: reference
+            };
 
-                alert("Appointment logged successfully!");
-                document.getElementById('createAppointmentForm').reset();
-                dateInput.value = new Date().toISOString().split('T')[0];
-                customTimeInput.style.display = "none";
-                customTimeInput.removeAttribute('required');
-                clearAutoPopulatedFields();
-                updateAvailableTimeSlots();
+            try {
+                if (editId) {
+                    // Update current entry
+                    const docRef = doc(db, "appointments", editId);
+                    await updateDoc(docRef, appointmentPayload);
+                    alert("Appointment updated successfully!");
+                    window.location.href = "admin.html";
+                } else {
+                    // Create brand new document entry
+                    await addDoc(collection(db, "appointments"), {
+                        ...appointmentPayload,
+                        follow_up: "",
+                        call_back: "",
+                        status: "Booked",
+                        createdAt: new Date()
+                    });
+                    alert("Appointment logged successfully!");
+                    document.getElementById('createAppointmentForm').reset();
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                    customTimeInput.style.display = "none";
+                    customTimeInput.removeAttribute('required');
+                    clearAutoPopulatedFields();
+                    updateAvailableTimeSlots();
+                }
             } catch (err) {
-                console.error("Error inserting record: ", err);
-                alert("Failed to create record.");
+                console.error("Error saving record data payload: ", err);
+                alert("Failed to save record.");
             }
         });
+
+        // Trigger loading system sequence
+        checkEditMode();
     </script>
 </body>
 </html>

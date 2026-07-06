@@ -104,7 +104,6 @@
         .hamburger.active span:nth-child(2) { opacity: 0; }
         .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
         
-        /* Updated: Control bar layout handles centering engine */
         .controls-bar {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -169,7 +168,6 @@
             background: #f5f2ea;
         }
         
-        /* Shared CSS button class configurations */
         .toggle-container {
             display: flex;
             background: #f5f2ea;
@@ -225,7 +223,7 @@
         }
         .appointments-table {
             width: 100%;
-            min-width: 1120px;
+            min-width: 1180px;
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -245,17 +243,18 @@
             background-color: #fdfaf8;
         }
         
-        .col-done { width: 5%; text-align: center; }
-        .col-time { width: 8%; }
-        .col-name { width: 13%; }
-        .col-phone { width: 11%; }
+        .col-done { width: 4%; text-align: center; }
+        .col-time { width: 7%; }
+        .col-name { width: 12%; }
+        .col-phone { width: 10%; }
         .col-age { width: 5%; }
         .col-payment { width: 9%; }
         .col-type { width: 9%; }
         .col-ref { width: 11%; }
-        .col-diagnosis { width: 14%; }
+        .col-diagnosis { width: 13%; }
         .col-follow { width: 8%; }
         .col-callback { width: 7%; }
+        .col-actions { width: 6%; text-align: center; } /* Column configuration sizing for actions */
 
         .completed-row {
             background-color: #e2f3ec !important;
@@ -288,6 +287,27 @@
             border-bottom: 1px solid #72bfba;
             background-color: #f5f2ea;
         }
+        
+        /* Action buttons layout rules configuration */
+        .action-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+        .action-icon-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px;
+            border-radius: 3px;
+            transition: transform 0.1s ease;
+        }
+        .action-icon-btn:hover {
+            transform: scale(1.2);
+        }
+        
         .no-data {
             text-align: center;
             padding: 50px;
@@ -396,7 +416,6 @@
         </div>
 
         <div class="controls-bar">
-            <!-- Left Side Element Wrapper Container -->
             <div class="controls-left">
                 <div class="toggle-container">
                     <button class="toggle-btn active" id="consultationServiceBtn">Consultation</button>
@@ -404,7 +423,6 @@
                 </div>
             </div>
 
-            <!-- Centered Element Wrapper Container -->
             <div class="controls-center">
                 <div class="date-picker-container">
                     <button class="arrow-btn" id="prevDay">&lt;</button>
@@ -413,7 +431,6 @@
                 </div>
             </div>
 
-            <!-- Right Side Element Wrapper Container -->
             <div class="controls-right">
                 <div class="toggle-container">
                     <button class="toggle-btn active" id="morningShiftBtn">Morning</button>
@@ -439,6 +456,7 @@
                         <th class="col-diagnosis">Diagnosis</th>
                         <th class="col-follow">Follow up</th>
                         <th class="col-callback">Call back</th>
+                        <th class="col-actions" style="text-align: center;">Actions</th> <!-- Added Header -->
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -450,7 +468,7 @@
                         <td colspan="2" id="totalBreakdown" class="totals-value">
                             <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
                         </td>
-                        <td colspan="3"></td>
+                        <td colspan="4"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -470,7 +488,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Added deleteDoc parameter into imports configuration framework
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -492,12 +511,10 @@
         const totalCashEl = document.getElementById('totalCashText');
         const totalOnlineEl = document.getElementById('totalOnlineText');
 
-        // Service Tracking Buttons
         const consultationServiceBtn = document.getElementById('consultationServiceBtn');
         const laserServiceBtn = document.getElementById('laserServiceBtn');
         let activeService = 'Consultation';
 
-        // Shift Tracking Buttons
         const morningShiftBtn = document.getElementById('morningShiftBtn');
         const afternoonShiftBtn = document.getElementById('afternoonShiftBtn');
         let activeShift = 'morning'; 
@@ -512,7 +529,6 @@
 
             const selectedDate = dateFilter.value;
 
-            // Query filtering based directly on the activeService value
             const q = query(
                 collection(db, "appointments"),
                 where("service_type", "==", activeService),
@@ -565,6 +581,7 @@
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
                     const isTypeUnset = (!isOnline && !isCash) ? 'selected' : '';
 
+                    // Injected actions block container at the row tail wrapper layout structure
                     tr.innerHTML = `
                         <td style="text-align: center;">
                             <input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>
@@ -595,6 +612,12 @@
                         <td>
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0">
                         </td>
+                        <td>
+                            <div class="action-container">
+                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
+                                <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
+                            </div>
+                        </td>
                     `;
                     tableBody.appendChild(tr);
                 });
@@ -615,6 +638,30 @@
                 totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
                 totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
                 tableFooter.style.display = "";
+
+                // Intercept logic configuration mapping for dynamic Edit and Delete triggers
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const docId = e.target.getAttribute('data-id');
+                        // In a real application workflow environment configuration setup, 
+                        // you can pass the parameter along via query parameters to create.html:
+                        window.location.href = `create.html?editId=${docId}`;
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const docId = e.target.getAttribute('data-id');
+                        if (confirm("Are you sure you want to permanently delete this appointment record?")) {
+                            try {
+                                await deleteDoc(doc(db, "appointments", docId));
+                                console.log(`Successfully deleted record document: ${docId}`);
+                            } catch (err) {
+                                console.error("Firestore document erasure operation failed: ", err);
+                            }
+                        }
+                    });
+                });
 
                 document.querySelectorAll('.status-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', async (e) => {
@@ -674,7 +721,6 @@
             totalOnlineEl.textContent = "Online ₹0";
         }
 
-        // Service selection routing logic
         function switchService(service) {
             if (activeService === service) return;
             activeService = service;
