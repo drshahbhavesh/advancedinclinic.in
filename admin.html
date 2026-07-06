@@ -223,38 +223,44 @@
         }
         .appointments-table {
             width: 100%;
-            min-width: 1180px;
+            min-width: 1260px; 
             border-collapse: collapse;
             table-layout: fixed;
         }
+        /* UPDATED: Clean padding values to maximize text space and eliminate clipping */
         .appointments-table th, .appointments-table td {
             border: 1px solid rgba(125,152,163,0.31);
-            padding: 14px 16px;
+            padding: 12px 10px;
             text-align: left;
-            font-size: 15px;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .appointments-table th {
             font-family: "Open Sans", sans-serif;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #7a7a7a;
             background-color: #fdfaf8;
         }
         
+        /* Optimized Width Routing Matrices */
         .col-done { width: 4%; text-align: center; }
-        .col-time { width: 7%; }
-        .col-name { width: 12%; }
-        .col-phone { width: 10%; }
-        .col-age { width: 5%; }
-        .col-payment { width: 9%; }
-        .col-type { width: 9%; }
-        .col-ref { width: 11%; }
-        .col-diagnosis { width: 13%; }
+        .col-time { width: 6%; }
+        .col-name { width: 13%; }
+        .col-phone { width: 11%; }
+        .col-age { width: 4%; }
+        .col-address { width: 8%; } 
+        .col-payment { width: 8%; }
+        .col-type { width: 8%; }
+        .col-ref { width: 10%; }
+        .col-diagnosis { width: 12%; }
         .col-follow { width: 8%; }
-        .col-callback { width: 7%; }
-        .col-actions { width: 6%; text-align: center; } /* Column configuration sizing for actions */
+        .col-actions { width: 4%; text-align: center; } /* Compact fit for Edit button row */
+        .col-callback { width: 8%; }
 
         .completed-row {
             background-color: #e2f3ec !important;
@@ -264,8 +270,8 @@
         }
 
         .cell-checkbox {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
             accent-color: #2f7a5f;
             display: block;
@@ -277,7 +283,7 @@
             border: none;
             border-bottom: 1px dashed rgba(125,152,163,0.5);
             background: transparent;
-            padding: 4px;
+            padding: 2px 4px;
             font-size: 14px;
             font-family: "Open Sans", sans-serif;
             color: #49444c;
@@ -288,10 +294,9 @@
             background-color: #f5f2ea;
         }
         
-        /* Action buttons layout rules configuration */
         .action-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             align-items: center;
         }
@@ -299,7 +304,7 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             padding: 2px;
             border-radius: 3px;
             transition: transform 0.1s ease;
@@ -448,22 +453,23 @@
                         <th class="col-done" style="text-align: center;">Done</th>
                         <th class="col-time">Time</th>
                         <th class="col-name">Name</th>
-                        <th class="col-phone">Contact number</th>
+                        <th class="col-phone">Contact Number</th> 
                         <th class="col-age">Age</th>
+                        <th class="col-address">Address</th> 
                         <th class="col-payment">Payment</th>
                         <th class="col-type">Type</th>
                         <th class="col-ref">Reference</th>
                         <th class="col-diagnosis">Diagnosis</th>
-                        <th class="col-follow">Follow up</th>
-                        <th class="col-callback">Call back</th>
-                        <th class="col-actions" style="text-align: center;">Actions</th> <!-- Added Header -->
+                        <th class="col-follow">Follow Up</th> 
+                        <th class="col-actions" style="text-align: center;">Edit</th> <!-- UPDATED: Renamed from ACTIONS to EDIT -->
+                        <th class="col-callback">Call Back</th> 
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                 </tbody>
                 <tfoot id="tableFooter" style="display: none;">
                     <tr class="totals-row">
-                        <td colspan="5" class="totals-label">Totals for the day</td>
+                        <td colspan="6" class="totals-label">Totals for the day</td>
                         <td id="totalEarned" class="totals-value">₹0</td>
                         <td colspan="2" id="totalBreakdown" class="totals-value">
                             <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
@@ -488,7 +494,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // Added deleteDoc parameter into imports configuration framework
         import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -581,7 +586,6 @@
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
                     const isTypeUnset = (!isOnline && !isCash) ? 'selected' : '';
 
-                    // Injected actions block container at the row tail wrapper layout structure
                     tr.innerHTML = `
                         <td style="text-align: center;">
                             <input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>
@@ -590,6 +594,7 @@
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td>${data.age || '--'}</td>
+                        <td>${data.patient_address || '--'}</td>
                         <td>
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0">
                         </td>
@@ -610,13 +615,13 @@
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0">
                         </td>
                         <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0">
-                        </td>
-                        <td>
                             <div class="action-container">
                                 <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
                                 <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
                             </div>
+                        </td>
+                        <td>
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0">
                         </td>
                     `;
                     tableBody.appendChild(tr);
@@ -639,12 +644,9 @@
                 totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
                 tableFooter.style.display = "";
 
-                // Intercept logic configuration mapping for dynamic Edit and Delete triggers
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
-                        // In a real application workflow environment configuration setup, 
-                        // you can pass the parameter along via query parameters to create.html:
                         window.location.href = `create.html?editId=${docId}`;
                     });
                 });
@@ -683,7 +685,7 @@
                         } catch (err) {
                             console.error("Firestore status update failed: ", err);
                             if (isChecked) row.classList.remove('completed-row');
-                            else row.classList.add('completed-row');
+                            else row.classList.remove('completed-row');
                             e.target.checked = !isChecked;
                         }
                     });

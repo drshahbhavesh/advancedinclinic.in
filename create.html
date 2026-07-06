@@ -311,8 +311,9 @@
                         <div class="form-field-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
                             <div style="display: flex; gap: 15px; width: 100%; align-items: center;">
                                 <input type="date" id="appDate" class="input-box" required style="width: 50%;">
-                                <select id="appTime" class="input-box" required style="width: 50%;">
-                                    <option value="" disabled selected>-- Select Time --</option>
+                                <select id="appTimeMode" class="input-box" required style="width: 50%;">
+                                    <option value="AUTO" selected>Auto (Next Free Slot)</option>
+                                    <option value="MANUAL">⚙️ Manual Time Selection</option>
                                 </select>
                             </div>
                             <input type="time" id="customTimeInput" class="input-box" style="display: none; border-color: #72bfba; background-color: #fafcfb;">
@@ -366,6 +367,14 @@
                         </div>
                     </div>
 
+                    <!-- Repositioned: Address Row now lives directly below Payment and above Reference -->
+                    <div class="form-row">
+                        <label for="address" class="form-label">Address</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="address" class="input-box">
+                        </div>
+                    </div>
+
                     <div class="form-row">
                         <label for="reference" class="form-label">Reference</label>
                         <div class="form-field-wrapper">
@@ -410,39 +419,41 @@
 
         const serviceInput = document.getElementById('service');
         const dateInput = document.getElementById('appDate');
-        const timeSelect = document.getElementById('appTime');
+        const timeModeSelect = document.getElementById('appTimeMode');
         const customTimeInput = document.getElementById('customTimeInput');
         const phoneInput = document.getElementById('phone');
         const nameInput = document.getElementById('name');
+        const addressInput = document.getElementById('address');
         const nameSelector = document.getElementById('nameSelector');
         const lookupStatus = document.getElementById('lookupStatus');
         const submitBtn = document.getElementById('submitBtn');
         const formTitle = document.getElementById('formTitle');
         const navLogo = document.getElementById('navLogo');
 
-        // Parse explicit Edit Mode parameters from URL
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('editId');
 
         dateInput.value = new Date().toISOString().split('T')[0];
 
+        let bookedTimesSet = new Set();
+
         function generateTimeSlots(service) {
             const interval = service === 'Laser Hair Removal' ? 60 : 15;
             const slots = [];
-            for (let hour = 9; hour < 18; hour++) {
+            
+            // Shift 1: 10:00 AM to 2:00 PM (14:00)
+            for (let hour = 10; hour <= 14; hour++) {
                 for (let min = 0; min < 60; min += interval) {
-                    const ampm = hour >= 12 ? 'PM' : 'AM';
-                    let displayHour = hour % 12;
-                    if (displayHour === 0) displayHour = 12;
-                    
-                    const hhDisplay = String(displayHour).padStart(2, '0');
-                    const mm = String(min).padStart(2, '0');
-                    const hhValue = String(hour).padStart(2, '0');
-                    
-                    slots.push({
-                        value: `${hhValue}:${mm}`,
-                        display: `${hhDisplay}:${mm} ${ampm}`
-                    });
+                    if (hour === 14 && min > 0) continue;
+                    slots.push(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+                }
+            }
+            
+            // Shift 2: 4:00 PM (16:00) to 9:00 PM (21:00)
+            for (let hour = 16; hour <= 21; hour++) {
+                for (let min = 0; min < 60; min += interval) {
+                    if (hour === 21 && min > 0) continue;
+                    slots.push(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
                 }
             }
             return slots;
@@ -450,15 +461,13 @@
 
         let unsubscribeSlots = null;
 
-        function updateAvailableTimeSlots(callback) {
+        function monitorBookedSlots() {
             if (unsubscribeSlots) unsubscribeSlots();
 
             const selectedService = serviceInput.value;
             const selectedDate = dateInput.value;
 
             if (!selectedService || !selectedDate) return;
-
-            const timeSlots = generateTimeSlots(selectedService);
 
             const q = query(
                 collection(db, "appointments"),
@@ -467,47 +476,20 @@
             );
 
             unsubscribeSlots = onSnapshot(q, (snapshot) => {
-                const bookedTimes = new Set();
+                bookedTimesSet.clear();
                 snapshot.forEach((doc) => {
-                    // Exclude current edited record from being marked as 'Booked' so it remains selectable
                     if (doc.id !== editId) {
                         const data = doc.data();
                         if (data.appointment_time) {
-                            bookedTimes.add(data.appointment_time);
+                            bookedTimesSet.add(data.appointment_time);
                         }
                     }
                 });
-
-                const currentSelection = timeSelect.value;
-                timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
-
-                timeSlots.forEach(slot => {
-                    const option = document.createElement('option');
-                    option.value = slot.value;
-                    option.textContent = slot.display;
-
-                    if (bookedTimes.has(slot.value)) {
-                        option.disabled = true;
-                        option.textContent += ' (Booked)';
-                    }
-                    timeSelect.appendChild(option);
-                });
-
-                const customOpt = document.createElement('option');
-                customOpt.value = "CUSTOM_MANUAL";
-                customOpt.textContent = "⚙️ Enter Manual Time...";
-                timeSelect.appendChild(customOpt);
-
-                if (currentSelection && !bookedTimes.has(currentSelection)) {
-                    timeSelect.value = currentSelection;
-                }
-
-                if (callback) callback(timeSlots);
             });
         }
 
-        timeSelect.addEventListener('change', (e) => {
-            if (e.target.value === "CUSTOM_MANUAL") {
+        timeModeSelect.addEventListener('change', (e) => {
+            if (e.target.value === "MANUAL") {
                 customTimeInput.style.display = "block";
                 customTimeInput.setAttribute('required', 'true');
             } else {
@@ -517,18 +499,15 @@
             }
         });
 
-        serviceInput.addEventListener('change', () => updateAvailableTimeSlots());
-        dateInput.addEventListener('change', () => updateAvailableTimeSlots());
+        serviceInput.addEventListener('change', monitorBookedSlots);
+        dateInput.addEventListener('change', monitorBookedSlots);
 
-        // --- NEW: EDIT MODE ROUTING INITIALIZER ---
         async function checkEditMode() {
             if (!editId) {
-                // Regular creation mode configuration
-                updateAvailableTimeSlots();
+                monitorBookedSlots();
                 return;
             }
 
-            // Adjust UI layout presentation text to reflect Edit Mode
             formTitle.textContent = "Edit Appointment";
             navLogo.textContent = "Admin Edit";
             submitBtn.textContent = "Update Appointment";
@@ -540,32 +519,25 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
 
-                    // Pre-fill primary input layouts
                     serviceInput.value = data.service_type || "Consultation";
                     dateInput.value = data.appointment_date || "";
                     phoneInput.value = data.patient_phone || "";
                     nameInput.value = data.patient_name || "";
+                    addressInput.value = data.patient_address || ""; 
                     document.getElementById('age').value = data.age || "";
                     document.getElementById('gender').value = data.gender || "";
                     document.getElementById('payment').value = data.payment || "";
                     document.getElementById('paymentType').value = data.payment_type || "";
                     document.getElementById('reference').value = data.reference || "";
 
-                    // Sync slots and configure time selector
-                    updateAvailableTimeSlots((slots) => {
-                        const targetTime = data.appointment_time || "";
-                        const standardSlotExists = slots.some(slot => slot.value === targetTime);
+                    monitorBookedSlots();
 
-                        if (standardSlotExists) {
-                            timeSelect.value = targetTime;
-                        } else if (targetTime) {
-                            // If it's a custom time entry, fallback into manual layout views
-                            timeSelect.value = "CUSTOM_MANUAL";
-                            customTimeInput.style.display = "block";
-                            customTimeInput.setAttribute('required', 'true');
-                            customTimeInput.value = targetTime;
-                        }
-                    });
+                    if (data.appointment_time) {
+                        timeModeSelect.value = "MANUAL";
+                        customTimeInput.style.display = "block";
+                        customTimeInput.setAttribute('required', 'true');
+                        customTimeInput.value = data.appointment_time;
+                    }
                 } else {
                     alert("Requested appointment record not found.");
                     window.location.href = "admin.html";
@@ -579,6 +551,7 @@
 
         function populateFormFields(record) {
             nameInput.value = record.patient_name || "";
+            addressInput.value = record.patient_address || ""; // Auto-populates historical address
             document.getElementById('age').value = record.age || "";
             document.getElementById('gender').value = record.gender || "";
             
@@ -590,6 +563,8 @@
                 } else {
                     document.getElementById('reference').value = `Last visit: ${record.appointment_date}`;
                 }
+            } else {
+                document.getElementById('reference').value = "";
             }
             
             lookupStatus.style.display = "block";
@@ -601,6 +576,7 @@
             nameInput.value = "";
             nameInput.style.display = "block"; 
             nameSelector.style.display = "none";
+            addressInput.value = "";
             document.getElementById('age').value = "";
             document.getElementById('gender').value = "";
             document.getElementById('reference').value = "";
@@ -610,7 +586,7 @@
         }
 
         phoneInput.addEventListener('input', async (e) => {
-            if (editId) return; // Disable automatic lookups during live edit operations
+            if (editId) return; 
             const phoneNumber = e.target.value.trim();
 
             if (phoneNumber.length >= 10) {
@@ -654,6 +630,7 @@
                             nameSelector.style.display = "block"; 
                             
                             nameInput.value = "";
+                            addressInput.value = "";
                             document.getElementById('age').value = "";
                             document.getElementById('gender').value = "";
                             document.getElementById('reference').value = "";
@@ -695,13 +672,35 @@
             const serviceType = serviceInput.value;
             const appointmentDate = dateInput.value;
             
-            let appointmentTime = timeSelect.value;
-            if (appointmentTime === "CUSTOM_MANUAL") {
+            let appointmentTime = "";
+            if (timeModeSelect.value === "MANUAL") {
                 appointmentTime = customTimeInput.value.trim();
+            } else {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+                const currentFormattedTime = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+
+                const allSlots = generateTimeSlots(serviceType);
+                const availableSlots = allSlots.filter(slot => !bookedTimesSet.has(slot));
+
+                let computedSlot = availableSlots.find(slotTime => slotTime >= currentFormattedTime);
+
+                if (!computedSlot && availableSlots.length > 0) {
+                    computedSlot = availableSlots[0];
+                }
+
+                if (computedSlot) {
+                    appointmentTime = computedSlot;
+                } else {
+                    alert("No remaining available time slots found for this date. Please enter a time manually.");
+                    return;
+                }
             }
 
             const name = nameInput.value;
             const phone = phoneInput.value;
+            const address = addressInput.value.trim();
             const age = document.getElementById('age').value;
             const gender = document.getElementById('gender').value;
             
@@ -715,6 +714,7 @@
                 appointment_time: appointmentTime,
                 patient_name: name,
                 patient_phone: phone,
+                patient_address: address, 
                 age: age ? Number(age) : "",
                 gender: gender,
                 payment: payment ? Number(payment) : "", 
@@ -724,13 +724,11 @@
 
             try {
                 if (editId) {
-                    // Update current entry
                     const docRef = doc(db, "appointments", editId);
                     await updateDoc(docRef, appointmentPayload);
                     alert("Appointment updated successfully!");
                     window.location.href = "admin.html";
                 } else {
-                    // Create brand new document entry
                     await addDoc(collection(db, "appointments"), {
                         ...appointmentPayload,
                         follow_up: "",
@@ -738,13 +736,19 @@
                         status: "Booked",
                         createdAt: new Date()
                     });
-                    alert("Appointment logged successfully!");
+                    
+                    const ampmCheck = parseInt(appointmentTime.split(':')[0]);
+                    const displayHr = ampmCheck % 12 === 0 ? 12 : ampmCheck % 12;
+                    const displayStr = `${String(displayHr).padStart(2, '0')}:${appointmentTime.split(':')[1]} ${ampmCheck >= 12 ? 'PM' : 'AM'}`;
+                    
+                    alert(`Appointment logged successfully! Assigned to slot: ${displayStr}`);
+                    
                     document.getElementById('createAppointmentForm').reset();
                     dateInput.value = new Date().toISOString().split('T')[0];
                     customTimeInput.style.display = "none";
                     customTimeInput.removeAttribute('required');
                     clearAutoPopulatedFields();
-                    updateAvailableTimeSlots();
+                    monitorBookedSlots();
                 }
             } catch (err) {
                 console.error("Error saving record data payload: ", err);
@@ -752,7 +756,6 @@
             }
         });
 
-        // Trigger loading system sequence
         checkEditMode();
     </script>
 </body>
