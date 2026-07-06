@@ -171,7 +171,6 @@
             margin-left: 5px;
             margin-right: 5px;
         }
-        /* Visual status banner for auto-fetching */
         .status-toast {
             font-size: 13px;
             color: #4a8f6b;
@@ -321,7 +320,7 @@
                     <div class="form-row">
                         <label for="phone" class="form-label">Number</label>
                         <div class="form-field-wrapper">
-                            <!-- Updated: inputmode restricts mobile keyboards to numbers; oninput strips out non-digits globally in real-time -->
+                            <!-- Input Mode ensures numeric keyboard, regex filters only digits -->
                             <input type="tel" id="phone" class="input-box" placeholder="Enter number to lookup..." required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
                     </div>
@@ -330,7 +329,7 @@
                     <div class="form-row">
                         <label for="name" class="form-label">Name</label>
                         <div class="form-field-wrapper">
-                            <input type="text" id="name" class="input-box" required>
+                            <input type="text" id="name" class="input-box" required autocapitalize="words">
                         </div>
                     </div>
 
@@ -387,7 +386,7 @@
         });
     </script>
 
-   <script type="module">
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -411,24 +410,18 @@
 
     dateInput.value = new Date().toISOString().split('T')[0];
 
-    // --- UPDATED: 12-HOUR CLOCK SLOT GENERATION ---
+    // 12-Hour Clock Slot Generation Engine
     function generateTimeSlots(service) {
         const interval = service === 'Laser Hair Removal' ? 60 : 15;
         const slots = [];
         for (let hour = 9; hour < 18; hour++) {
             for (let min = 0; min < 60; min += interval) {
-                // Determine AM/PM
                 const ampm = hour >= 12 ? 'PM' : 'AM';
-                
-                // Convert 24-hour structure to 12-hour display value
                 let displayHour = hour % 12;
-                if (displayHour === 0) displayHour = 12; // Handle noon and midnight
+                if (displayHour === 0) displayHour = 12;
                 
                 const hhDisplay = String(displayHour).padStart(2, '0');
                 const mm = String(min).padStart(2, '0');
-                
-                // Keep standard 24h format for database value to ensure chronological sorting,
-                // but use the 12h format for user display.
                 const hhValue = String(hour).padStart(2, '0');
                 
                 slots.push({
@@ -472,8 +465,8 @@
 
             timeSlots.forEach(slot => {
                 const option = document.createElement('option');
-                option.value = slot.value; // Keeps '14:30' format under the hood
-                option.textContent = slot.display; // Shows '02:30 PM' to user
+                option.value = slot.value;
+                option.textContent = slot.display;
 
                 if (bookedTimes.has(slot.value)) {
                     option.disabled = true;
@@ -492,7 +485,7 @@
     dateInput.addEventListener('change', updateAvailableTimeSlots);
     updateAvailableTimeSlots();
 
-    // --- SMART RETRIEVAL SYSTEM LINK ENGINE ---
+    // Smart Retrieval Engine mapping with last-visit value routing into reference field
     phoneInput.addEventListener('input', async (e) => {
         const phoneNumber = e.target.value.trim();
 
@@ -514,8 +507,15 @@
                     document.getElementById('age').value = historicalRecord.age || "";
                     document.getElementById('gender').value = historicalRecord.gender || "";
                     
+                    // --- UPDATED: Split yyyy-mm-dd format and restructure into dd/mm/yyyy ---
                     if (historicalRecord.appointment_date) {
-                        document.getElementById('reference').value = `${historicalRecord.appointment_date}`;
+                        const dateParts = historicalRecord.appointment_date.split('-'); // ['yyyy', 'mm', 'dd']
+                        if (dateParts.length === 3) {
+                            const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`; // 'dd/mm/yyyy'
+                            document.getElementById('reference').value = `Last visit: ${formattedDate}`;
+                        } else {
+                            document.getElementById('reference').value = `${historicalRecord.appointment_date}`;
+                        }
                     }
                     
                     lookupStatus.style.display = "block";
@@ -529,6 +529,17 @@
             }
         } else {
             lookupStatus.style.display = "none";
+        }
+    });
+
+    // Auto-capitalize First and Last names on blur
+    document.getElementById('name').addEventListener('blur', (e) => {
+        let value = e.target.value.trim();
+        if (value) {
+            e.target.value = value
+                .split(/\s+/)
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
         }
     });
 
@@ -562,6 +573,7 @@
                 payment_type: paymentType,
                 reference: reference,
                 follow_up: "",
+                call_back: "",
                 status: "Booked",
                 createdAt: new Date()
             });
