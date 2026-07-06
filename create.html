@@ -387,173 +387,195 @@
         });
     </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
-            authDomain: "appointment-booking-1f0d0.firebaseapp.com",
-            projectId: "appointment-booking-1f0d0",
-            storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
-            messagingSenderId: "572909099522",
-            appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
+        authDomain: "appointment-booking-1f0d0.firebaseapp.com",
+        projectId: "appointment-booking-1f0d0",
+        storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
+        messagingSenderId: "572909099522",
+        appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const serviceInput = document.getElementById('service');
-        const dateInput = document.getElementById('appDate');
-        const timeSelect = document.getElementById('appTime');
-        const phoneInput = document.getElementById('phone');
-        const lookupStatus = document.getElementById('lookupStatus');
+    const serviceInput = document.getElementById('service');
+    const dateInput = document.getElementById('appDate');
+    const timeSelect = document.getElementById('appTime');
+    const phoneInput = document.getElementById('phone');
+    const lookupStatus = document.getElementById('lookupStatus');
 
-        dateInput.value = new Date().toISOString().split('T')[0];
+    dateInput.value = new Date().toISOString().split('T')[0];
 
-        function generateTimeSlots(service) {
-            const interval = service === 'Laser Hair Removal' ? 60 : 15;
-            const slots = [];
-            for (let hour = 9; hour < 18; hour++) {
-                for (let min = 0; min < 60; min += interval) {
-                    const hh = String(hour).padStart(2, '0');
-                    const mm = String(min).padStart(2, '0');
-                    slots.push(`${hh}:${mm}`);
-                }
+    // --- UPDATED: 12-HOUR CLOCK SLOT GENERATION ---
+    function generateTimeSlots(service) {
+        const interval = service === 'Laser Hair Removal' ? 60 : 15;
+        const slots = [];
+        for (let hour = 9; hour < 18; hour++) {
+            for (let min = 0; min < 60; min += interval) {
+                // Determine AM/PM
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                
+                // Convert 24-hour structure to 12-hour display value
+                let displayHour = hour % 12;
+                if (displayHour === 0) displayHour = 12; // Handle noon and midnight
+                
+                const hhDisplay = String(displayHour).padStart(2, '0');
+                const mm = String(min).padStart(2, '0');
+                
+                // Keep standard 24h format for database value to ensure chronological sorting,
+                // but use the 12h format for user display.
+                const hhValue = String(hour).padStart(2, '0');
+                
+                slots.push({
+                    value: `${hhValue}:${mm}`,
+                    display: `${hhDisplay}:${mm} ${ampm}`
+                });
             }
-            return slots;
         }
+        return slots;
+    }
 
-        let unsubscribeSlots = null;
+    let unsubscribeSlots = null;
 
-        function updateAvailableTimeSlots() {
-            if (unsubscribeSlots) unsubscribeSlots();
+    function updateAvailableTimeSlots() {
+        if (unsubscribeSlots) unsubscribeSlots();
 
-            const selectedService = serviceInput.value;
-            const selectedDate = dateInput.value;
+        const selectedService = serviceInput.value;
+        const selectedDate = dateInput.value;
 
-            if (!selectedService || !selectedDate) return;
+        if (!selectedService || !selectedDate) return;
 
-            const timeSlots = generateTimeSlots(selectedService);
+        const timeSlots = generateTimeSlots(selectedService);
 
-            const q = query(
-                collection(db, "appointments"),
-                where("service_type", "==", selectedService),
-                where("appointment_date", "==", selectedDate)
-            );
+        const q = query(
+            collection(db, "appointments"),
+            where("service_type", "==", selectedService),
+            where("appointment_date", "==", selectedDate)
+        );
 
-            unsubscribeSlots = onSnapshot(q, (snapshot) => {
-                const bookedTimes = new Set();
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.appointment_time) {
-                        bookedTimes.add(data.appointment_time);
-                    }
-                });
-
-                const currentSelection = timeSelect.value;
-                timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
-
-                timeSlots.forEach(slot => {
-                    const option = document.createElement('option');
-                    option.value = slot;
-                    option.textContent = slot;
-
-                    if (bookedTimes.has(slot)) {
-                        option.disabled = true;
-                        option.textContent += ' (Booked)';
-                    }
-                    timeSelect.appendChild(option);
-                });
-
-                if (currentSelection && !bookedTimes.has(currentSelection)) {
-                    timeSelect.value = currentSelection;
+        unsubscribeSlots = onSnapshot(q, (snapshot) => {
+            const bookedTimes = new Set();
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.appointment_time) {
+                    bookedTimes.add(data.appointment_time);
                 }
             });
-        }
 
-        serviceInput.addEventListener('change', updateAvailableTimeSlots);
-        dateInput.addEventListener('change', updateAvailableTimeSlots);
-        updateAvailableTimeSlots();
+            const currentSelection = timeSelect.value;
+            timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
 
-        phoneInput.addEventListener('input', async (e) => {
-            const phoneNumber = e.target.value.trim();
+            timeSlots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.value; // Keeps '14:30' format under the hood
+                option.textContent = slot.display; // Shows '02:30 PM' to user
 
-            if (phoneNumber.length >= 10) {
-                try {
-                    const q = query(
-                        collection(db, "appointments"),
-                        where("patient_phone", "==", phoneNumber),
-                        orderBy("createdAt", "desc"),
-                        limit(1)
-                    );
-
-                    const querySnapshot = await getDocs(q);
-                    
-                    if (!querySnapshot.empty) {
-                        const historicalRecord = querySnapshot.docs[0].data();
-                        
-                        document.getElementById('name').value = historicalRecord.patient_name || "";
-                        document.getElementById('age').value = historicalRecord.age || "";
-                        document.getElementById('gender').value = historicalRecord.gender || "";
-                        
-                        lookupStatus.style.display = "block";
-                        lookupStatus.style.opacity = '1';
-                        setTimeout(() => { lookupStatus.style.opacity = '0.5'; }, 3000);
-                    } else {
-                        lookupStatus.style.display = "none";
-                    }
-                } catch (err) {
-                    console.error("Historical index lookup fetch fail: ", err);
+                if (bookedTimes.has(slot.value)) {
+                    option.disabled = true;
+                    option.textContent += ' (Booked)';
                 }
-            } else {
-                lookupStatus.style.display = "none";
+                timeSelect.appendChild(option);
+            });
+
+            if (currentSelection && !bookedTimes.has(currentSelection)) {
+                timeSelect.value = currentSelection;
             }
         });
+    }
 
-        document.getElementById('createAppointmentForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+    serviceInput.addEventListener('change', updateAvailableTimeSlots);
+    dateInput.addEventListener('change', updateAvailableTimeSlots);
+    updateAvailableTimeSlots();
 
-            const serviceType = serviceInput.value;
-            const appointmentDate = dateInput.value;
-            const appointmentTime = timeSelect.value;
-            
-            const name = document.getElementById('name').value;
-            const phone = phoneInput.value;
-            const age = document.getElementById('age').value;
-            const gender = document.getElementById('gender').value;
-            
-            const payment = document.getElementById('payment').value;
-            const paymentType = document.getElementById('paymentType').value;
-            const reference = document.getElementById('reference').value;
+    // --- SMART RETRIEVAL SYSTEM LINK ENGINE ---
+    phoneInput.addEventListener('input', async (e) => {
+        const phoneNumber = e.target.value.trim();
 
+        if (phoneNumber.length >= 10) {
             try {
-                await addDoc(collection(db, "appointments"), {
-                    service_type: serviceType,
-                    appointment_date: appointmentDate,
-                    appointment_time: appointmentTime,
-                    patient_name: name,
-                    patient_phone: phone,
-                    age: age ? Number(age) : "",
-                    gender: gender,
-                    payment: payment ? Number(payment) : "", 
-                    payment_type: paymentType,
-                    reference: reference,
-                    follow_up: "",
-                    status: "Booked",
-                    createdAt: new Date()
-                });
+                const q = query(
+                    collection(db, "appointments"),
+                    where("patient_phone", "==", phoneNumber),
+                    orderBy("createdAt", "desc"),
+                    limit(1)
+                );
 
-                alert("Appointment logged successfully!");
-                document.getElementById('createAppointmentForm').reset();
-                dateInput.value = new Date().toISOString().split('T')[0];
-                lookupStatus.style.display = "none";
-                updateAvailableTimeSlots();
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const historicalRecord = querySnapshot.docs[0].data();
+                    
+                    document.getElementById('name').value = historicalRecord.patient_name || "";
+                    document.getElementById('age').value = historicalRecord.age || "";
+                    document.getElementById('gender').value = historicalRecord.gender || "";
+                    
+                    if (historicalRecord.appointment_date) {
+                        document.getElementById('reference').value = `${historicalRecord.appointment_date}`;
+                    }
+                    
+                    lookupStatus.style.display = "block";
+                    lookupStatus.style.opacity = '1';
+                    setTimeout(() => { lookupStatus.style.opacity = '0.5'; }, 3000);
+                } else {
+                    lookupStatus.style.display = "none";
+                }
             } catch (err) {
-                console.error("Error inserting record: ", err);
-                alert("Failed to create record.");
+                console.error("Historical index lookup fetch fail: ", err);
             }
-        });
-    </script>
+        } else {
+            lookupStatus.style.display = "none";
+        }
+    });
+
+    // Submission Pipeline
+    document.getElementById('createAppointmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const serviceType = serviceInput.value;
+        const appointmentDate = dateInput.value;
+        const appointmentTime = timeSelect.value;
+        
+        const name = document.getElementById('name').value;
+        const phone = phoneInput.value;
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+        
+        const payment = document.getElementById('payment').value;
+        const paymentType = document.getElementById('paymentType').value;
+        const reference = document.getElementById('reference').value;
+
+        try {
+            await addDoc(collection(db, "appointments"), {
+                service_type: serviceType,
+                appointment_date: appointmentDate,
+                appointment_time: appointmentTime,
+                patient_name: name,
+                patient_phone: phone,
+                age: age ? Number(age) : "",
+                gender: gender,
+                payment: payment ? Number(payment) : "", 
+                payment_type: paymentType,
+                reference: reference,
+                follow_up: "",
+                status: "Booked",
+                createdAt: new Date()
+            });
+
+            alert("Appointment logged successfully!");
+            document.getElementById('createAppointmentForm').reset();
+            dateInput.value = new Date().toISOString().split('T')[0];
+            lookupStatus.style.display = "none";
+            updateAvailableTimeSlots();
+        } catch (err) {
+            console.error("Error inserting record: ", err);
+            alert("Failed to create record.");
+        }
+    });
+</script>
 </body>
 </html>

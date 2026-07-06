@@ -185,7 +185,7 @@
         }
         .appointments-table {
             width: 100%;
-            min-width: 1080px;
+            min-width: 1120px;
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -204,17 +204,36 @@
             color: #7a7a7a;
             background-color: #fdfaf8;
         }
-        /* Adjusted widths to balance insertion of Age column smoothly */
+        
+        /* Adjusted layout widths to perfectly balance the updated checklist item column */
+        .col-done { width: 5%; text-align: center; }
         .col-time { width: 8%; }
-        .col-name { width: 14%; }
+        .col-name { width: 13%; }
         .col-phone { width: 11%; }
-        .col-age { width: 6%; } /* Dedicated space for patient age */
-        .col-payment { width: 10%; }
-        .col-type { width: 10%; }
+        .col-age { width: 5%; }
+        .col-payment { width: 9%; }
+        .col-type { width: 9%; }
         .col-ref { width: 11%; }
-        .col-diagnosis { width: 15%; }
-        .col-callback { width: 8%; }
-        .col-follow { width: 9%; }
+        .col-diagnosis { width: 14%; }
+        .col-callback { width: 7%; }
+        .col-follow { width: 8%; }
+
+        /* Row highlight style for visited patients */
+        .completed-row {
+            background-color: #e2f3ec !important;
+        }
+        .completed-row td {
+            background-color: #e2f3ec !important;
+        }
+
+        .cell-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #2f7a5f;
+            display: block;
+            margin: 0 auto;
+        }
 
         .cell-input, .cell-select {
             width: 100%;
@@ -354,10 +373,11 @@
             <table class="appointments-table">
                 <thead>
                     <tr>
+                        <th class="col-done" style="text-align: center;">Done</th> <!-- New status checkbox header -->
                         <th class="col-time">Time</th>
                         <th class="col-name">Name</th>
                         <th class="col-phone">Contact number</th>
-                        <th class="col-age">Age</th> <!-- Added Age Header -->
+                        <th class="col-age">Age</th>
                         <th class="col-payment">Payment</th>
                         <th class="col-type">Type</th>
                         <th class="col-ref">Reference</th>
@@ -370,8 +390,8 @@
                 </tbody>
                 <tfoot id="tableFooter" style="display: none;">
                     <tr class="totals-row">
-                        <!-- Incremented colspan to 4 to match the newly added column -->
-                        <td colspan="4" class="totals-label">Totals for the day</td>
+                        <!-- Incremented colspan to 5 to match the added Done status layout -->
+                        <td colspan="5" class="totals-label">Totals for the day</td>
                         <td id="totalEarned" class="totals-value">₹0</td>
                         <td colspan="2" id="totalBreakdown" class="totals-value">
                             <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
@@ -452,14 +472,22 @@
 
                 docs.forEach(data => {
                     const tr = document.createElement('tr');
+                    
+                    // Evaluate if the patient's status indicates they already completed the consultation
+                    const isVisited = data.status === 'Visited';
+                    if (isVisited) {
+                        tr.classList.add('completed-row');
+                    }
 
                     // Payment Method Options Evaluator
                     const isOnline = data.payment_type === 'Online' ? 'selected' : '';
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
                     const isTypeUnset = (!isOnline && !isCash) ? 'selected' : '';
 
-                    // Injected the age field inline with a baseline data check fallback
                     tr.innerHTML = `
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>
+                        </td>
                         <td>${data.appointment_time || ''}</td>
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
@@ -468,7 +496,7 @@
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0">
                         </td>
                         <td>
-                            <select class="cell-select cell-action" data-id="${data.id}" data-field="payment_type">
+                            <select class="cell-select cell-select-action" data-id="${data.id}" data-field="payment_type">
                                 <option value="" ${isTypeUnset}>--</option>
                                 <option value="Online" ${isOnline}>Online</option>
                                 <option value="Cash" ${isCash}>Cash</option>
@@ -508,8 +536,37 @@
                 totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
                 tableFooter.style.display = "";
 
-                // Global element intercept event binding engine
-                document.querySelectorAll('.cell-action').forEach(element => {
+                // Listener for completion status updates
+                document.querySelectorAll('.status-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', async (e) => {
+                        const docId = e.target.getAttribute('data-id');
+                        const isChecked = e.target.checked;
+                        const newStatus = isChecked ? 'Visited' : 'Booked';
+                        const row = e.target.closest('tr');
+
+                        // Optimistically toggle row formatting
+                        if (isChecked) {
+                            row.classList.add('completed-row');
+                        } else {
+                            row.classList.remove('completed-row');
+                        }
+
+                        try {
+                            const docRef = doc(db, "appointments", docId);
+                            await updateDoc(docRef, { status: newStatus });
+                            console.log(`Updated database status to: ${newStatus}`);
+                        } catch (err) {
+                            console.error("Firestore status update failed: ", err);
+                            // Rollback visual change if write fails
+                            if (isChecked) row.classList.remove('completed-row');
+                            else row.classList.add('completed-row');
+                            e.target.checked = !isChecked;
+                        }
+                    });
+                });
+
+                // Global element text intercept event binding engine
+                document.querySelectorAll('.cell-action, .cell-select-action').forEach(element => {
                     const triggerEvent = element.tagName === 'SELECT' ? 'change' : 'blur';
                     
                     element.addEventListener(triggerEvent, async (e) => {
@@ -517,7 +574,6 @@
                         const fieldName = e.target.getAttribute('data-field');
                         let newValue = e.target.value;
 
-                        // Force cast payment, follow_up, and call_back mutations to proper database Numbers
                         if ((fieldName === 'payment' || fieldName === 'follow_up' || fieldName === 'call_back') && newValue !== "") {
                             newValue = Number(newValue);
                         }
