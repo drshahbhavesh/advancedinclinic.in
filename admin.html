@@ -204,13 +204,15 @@
             color: #7a7a7a;
             background-color: #fdfaf8;
         }
+        /* Adjusted widths to balance insertion of Age column smoothly */
         .col-time { width: 8%; }
-        .col-name { width: 15%; }
-        .col-phone { width: 12%; }
+        .col-name { width: 14%; }
+        .col-phone { width: 11%; }
+        .col-age { width: 6%; } /* Dedicated space for patient age */
         .col-payment { width: 10%; }
         .col-type { width: 10%; }
-        .col-ref { width: 12%; }
-        .col-diagnosis { width: 16%; }
+        .col-ref { width: 11%; }
+        .col-diagnosis { width: 15%; }
         .col-callback { width: 8%; }
         .col-follow { width: 9%; }
 
@@ -355,6 +357,7 @@
                         <th class="col-time">Time</th>
                         <th class="col-name">Name</th>
                         <th class="col-phone">Contact number</th>
+                        <th class="col-age">Age</th> <!-- Added Age Header -->
                         <th class="col-payment">Payment</th>
                         <th class="col-type">Type</th>
                         <th class="col-ref">Reference</th>
@@ -364,10 +367,11 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    </tbody>
+                </tbody>
                 <tfoot id="tableFooter" style="display: none;">
                     <tr class="totals-row">
-                        <td colspan="3" class="totals-label">Totals for the day</td>
+                        <!-- Incremented colspan to 4 to match the newly added column -->
+                        <td colspan="4" class="totals-label">Totals for the day</td>
                         <td id="totalEarned" class="totals-value">₹0</td>
                         <td colspan="2" id="totalBreakdown" class="totals-value">
                             <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
@@ -454,10 +458,12 @@
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
                     const isTypeUnset = (!isOnline && !isCash) ? 'selected' : '';
 
+                    // Injected the age field inline with a baseline data check fallback
                     tr.innerHTML = `
                         <td>${data.appointment_time || ''}</td>
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
+                        <td>${data.age || '--'}</td>
                         <td>
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0">
                         </td>

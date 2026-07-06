@@ -302,7 +302,6 @@
                             <select id="service" class="input-box" required>
                                 <option value="Consultation">Consultation</option>
                                 <option value="Laser Hair Removal">Laser Hair Removal</option>
-
                             </select>
                         </div>
                     </div>
@@ -322,7 +321,8 @@
                     <div class="form-row">
                         <label for="phone" class="form-label">Number</label>
                         <div class="form-field-wrapper">
-                            <input type="tel" id="phone" class="input-box" placeholder="Enter number to lookup..." required>
+                            <!-- Updated: inputmode restricts mobile keyboards to numbers; oninput strips out non-digits globally in real-time -->
+                            <input type="tel" id="phone" class="input-box" placeholder="Enter number to lookup..." required inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
                     </div>
                     <div id="lookupStatus" class="status-toast">Returning patient data auto-populated!</div>
@@ -411,8 +411,6 @@
 
         dateInput.value = new Date().toISOString().split('T')[0];
 
-        // Slot Generation
-        // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 15-minute slots
         function generateTimeSlots(service) {
             const interval = service === 'Laser Hair Removal' ? 60 : 15;
             const slots = [];
@@ -478,15 +476,11 @@
         dateInput.addEventListener('change', updateAvailableTimeSlots);
         updateAvailableTimeSlots();
 
-        // --- SMART RETRIEVAL SYSTEM LINK ENGINE ---
         phoneInput.addEventListener('input', async (e) => {
             const phoneNumber = e.target.value.trim();
 
-            // Only search if a full number sequence is written out (e.g. 10 digits)
-            // You can adjust this condition check length to match your typical format lengths
             if (phoneNumber.length >= 10) {
                 try {
-                    // Query database looking for matching numbers, ordering by latest creation timestamp
                     const q = query(
                         collection(db, "appointments"),
                         where("patient_phone", "==", phoneNumber),
@@ -499,28 +493,24 @@
                     if (!querySnapshot.empty) {
                         const historicalRecord = querySnapshot.docs[0].data();
                         
-                        // Auto populate matched fields into HTML inputs
                         document.getElementById('name').value = historicalRecord.patient_name || "";
                         document.getElementById('age').value = historicalRecord.age || "";
                         document.getElementById('gender').value = historicalRecord.gender || "";
                         
-                        // Show confirmation status
                         lookupStatus.style.display = "block";
+                        lookupStatus.style.opacity = '1';
                         setTimeout(() => { lookupStatus.style.opacity = '0.5'; }, 3000);
                     } else {
                         lookupStatus.style.display = "none";
                     }
                 } catch (err) {
                     console.error("Historical index lookup fetch fail: ", err);
-                    // Missing Firestore composite index warning? 
-                    // If you see an error in the console with a URL, click it to automatically create the required Firestore index!
                 }
             } else {
                 lookupStatus.style.display = "none";
             }
         });
 
-        // Submission Pipeline
         document.getElementById('createAppointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
