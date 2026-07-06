@@ -308,11 +308,15 @@
 
                     <div class="form-row">
                         <label class="form-label">Schedule</label>
-                        <div class="form-field-wrapper">
-                            <input type="date" id="appDate" class="input-box" required style="width: 50%;">
-                            <select id="appTime" class="input-box" required style="width: 50%;">
-                                <option value="" disabled selected>-- Select Time --</option>
-                            </select>
+                        <div class="form-field-wrapper" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                            <div style="display: flex; gap: 15px; width: 100%; align-items: center;">
+                                <input type="date" id="appDate" class="input-box" required style="width: 50%;">
+                                <select id="appTime" class="input-box" required style="width: 50%;">
+                                    <option value="" disabled selected>-- Select Time --</option>
+                                </select>
+                            </div>
+                            <!-- Standard native HTML time selector wheel wheel option handles local 12-hour engine options automatically -->
+                            <input type="time" id="customTimeInput" class="input-box" style="display: none; border-color: #72bfba; background-color: #fafcfb;">
                         </div>
                     </div>
 
@@ -328,7 +332,6 @@
 
                     <div class="form-row">
                         <label for="name" class="form-label">Name</label>
-                        <!-- Restored to default flex wrapper so formatting matches other form components perfectly -->
                         <div class="form-field-wrapper">
                             <select id="nameSelector" class="input-box" style="display: none; border-color: #87008c; background-color: #fbf5fc;">
                                 <option value="" disabled selected>-- Multiple Patients Found! Select Name --</option>
@@ -409,6 +412,7 @@
         const serviceInput = document.getElementById('service');
         const dateInput = document.getElementById('appDate');
         const timeSelect = document.getElementById('appTime');
+        const customTimeInput = document.getElementById('customTimeInput');
         const phoneInput = document.getElementById('phone');
         const nameInput = document.getElementById('name');
         const nameSelector = document.getElementById('nameSelector');
@@ -480,11 +484,27 @@
                     timeSelect.appendChild(option);
                 });
 
+                const customOpt = document.createElement('option');
+                customOpt.value = "CUSTOM_MANUAL";
+                customOpt.textContent = "⚙️ Enter Manual Time...";
+                timeSelect.appendChild(customOpt);
+
                 if (currentSelection && !bookedTimes.has(currentSelection)) {
                     timeSelect.value = currentSelection;
                 }
             });
         }
+
+        timeSelect.addEventListener('change', (e) => {
+            if (e.target.value === "CUSTOM_MANUAL") {
+                customTimeInput.style.display = "block";
+                customTimeInput.setAttribute('required', 'true');
+            } else {
+                customTimeInput.style.display = "none";
+                customTimeInput.removeAttribute('required');
+                customTimeInput.value = "";
+            }
+        });
 
         serviceInput.addEventListener('change', updateAvailableTimeSlots);
         dateInput.addEventListener('change', updateAvailableTimeSlots);
@@ -522,7 +542,7 @@
             document.getElementById('gender').value = "";
             document.getElementById('reference').value = "";
             lookupStatus.style.display = "none";
-            nameSelector.innerHTML = '<option value="" disabled selected>-- Multiple Patients --</option>';
+            nameSelector.innerHTML = '<option value="" disabled selected>-- Multiple Patients Found! Select Name --</option>';
             matchedPatientsMap = {};
         }
 
@@ -566,7 +586,6 @@
                                 nameSelector.appendChild(opt);
                             });
                             
-                            // Toggles field types properly without touching flex wrapper configuration parameters
                             nameInput.style.display = "none"; 
                             nameSelector.style.display = "block"; 
                             
@@ -611,8 +630,13 @@
 
             const serviceType = serviceInput.value;
             const appointmentDate = dateInput.value;
-            const appointmentTime = timeSelect.value;
             
+            let appointmentTime = timeSelect.value;
+            if (appointmentTime === "CUSTOM_MANUAL") {
+                // Extracts internal value (always natively formatted as 24h 'HH:MM') from time widget structure
+                appointmentTime = customTimeInput.value.trim();
+            }
+
             const name = nameInput.value;
             const phone = phoneInput.value;
             const age = document.getElementById('age').value;
@@ -643,6 +667,8 @@
                 alert("Appointment logged successfully!");
                 document.getElementById('createAppointmentForm').reset();
                 dateInput.value = new Date().toISOString().split('T')[0];
+                customTimeInput.style.display = "none";
+                customTimeInput.removeAttribute('required');
                 clearAutoPopulatedFields();
                 updateAvailableTimeSlots();
             } catch (err) {
