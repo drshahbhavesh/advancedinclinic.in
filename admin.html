@@ -705,9 +705,13 @@
 
                         try {
                             const docRef = doc(db, "appointments", docId);
-                            await updateDoc(docRef, {
-                                [fieldName]: newValue
-                            });
+                            const updatePayload = { [fieldName]: newValue };
+                            if (fieldName === 'follow_up') {
+                                // A new/changed follow-up value means a new reminder date —
+                                // reset the flag so the WhatsApp reminder bot re-sends it.
+                                updatePayload.follow_up_sent = false;
+                            }
+                            await updateDoc(docRef, updatePayload);
                             console.log(`Updated database field [${fieldName}] to:`, newValue);
                         } catch (err) {
                             console.error("Firestore update failed: ", err);
