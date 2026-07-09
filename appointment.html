@@ -479,9 +479,59 @@
         serviceInput.addEventListener('change', updateAvailableTimeSlots);
         dateInput.addEventListener('change', updateAvailableTimeSlots);
 
+        console.log('%c[DEBUG] Module script loaded successfully.', 'background: lime; color: black; font-weight: bold;');
+
+        // ⚠️ TESTING ONLY — credentials exposed in client-side JS.
+        // Do not leave this in a publicly deployed site. See chat for why.
+        const BHASH_CONFIG = {
+            user: "Advancedskinclinic",
+            pass: "123456",
+            sender: "BUZWAP",
+            template: "laser"
+        };
+
+        function normalizePhoneDigits(rawPhone) {
+            let digits = String(rawPhone || '').replace(/\D/g, '');
+            if (!digits) return null;
+            digits = digits.replace(/^0+/, '');
+            if (digits.length === 10) digits = '91' + digits;
+            return digits;
+        }
+
+        // Fires the "laser" template via BhashSMS directly from the browser.
+        // For local testing only — see mixed-content / CORS notes in chat.
+        async function sendTestWhatsAppReminder(name, phone) {
+            const digits = normalizePhoneDigits(phone);
+            if (!digits) {
+                console.warn("Skipping test WhatsApp send: no usable phone number.");
+                return;
+            }
+
+            const url = new URL("http://bhashsms.com/api/sendmsg.php");
+            url.searchParams.set("user", BHASH_CONFIG.user);
+            url.searchParams.set("pass", BHASH_CONFIG.pass);
+            url.searchParams.set("sender", BHASH_CONFIG.sender);
+            url.searchParams.set("phone", digits);
+            url.searchParams.set("text", BHASH_CONFIG.template);
+            url.searchParams.set("priority", "wa");
+            url.searchParams.set("stype", "normal");
+            url.searchParams.set("Params", name || "there");
+
+            try {
+                const res = await fetch(url.toString());
+                const body = await res.text();
+                console.log("BhashSMS response:", res.status, body);
+            } catch (err) {
+                // Likely CORS or mixed-content blocking the response read —
+                // the request may still have reached BhashSMS regardless.
+                console.warn("BhashSMS fetch error (may still have sent — check your WhatsApp):", err);
+            }
+        }
+
         // --- HANDLE FORM SUBMISSION ---
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('%c[DEBUG] Form submit handler fired.', 'background: yellow; color: black; font-weight: bold;');
 
             const service = serviceInput.value;
             const name = document.getElementById('name').value;
@@ -490,6 +540,7 @@
             const time = timeSelect.value;
 
             try {
+                console.log('%c[DEBUG] About to write to Firestore...', 'background: yellow; color: black; font-weight: bold;');
                 // Combined single transaction layout schema payload tracking
                 await addDoc(collection(db, "appointments"), {
                     service_type: service,
@@ -506,7 +557,12 @@
                     reference: "",
                     follow_up: ""
                 });
-                
+
+                // TESTING ONLY — sends the "laser" template immediately on booking
+                // so you can confirm the BhashSMS integration works end-to-end.
+                console.log('%c[DEBUG] Firestore write succeeded. Calling BhashSMS...', 'background: yellow; color: black; font-weight: bold;');
+                sendTestWhatsAppReminder(name, phone);
+
                 const params = new URLSearchParams({
                     name: name,
                     date: date,

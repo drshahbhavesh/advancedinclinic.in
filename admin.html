@@ -707,9 +707,10 @@
                             const docRef = doc(db, "appointments", docId);
                             const updatePayload = { [fieldName]: newValue };
                             if (fieldName === 'follow_up') {
-                                // A new/changed follow-up value means a new reminder date —
-                                // reset the flag so the WhatsApp reminder bot re-sends it.
+                                // A new/changed follow-up value means new reminder dates —
+                                // reset both flags so the WhatsApp reminder bot re-sends them.
                                 updatePayload.follow_up_sent = false;
+                                updatePayload.follow_up_day_before_sent = false;
                             }
                             await updateDoc(docRef, updatePayload);
                             console.log(`Updated database field [${fieldName}] to:`, newValue);
