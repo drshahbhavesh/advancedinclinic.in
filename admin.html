@@ -227,7 +227,6 @@
             border-collapse: collapse;
             table-layout: fixed;
         }
-        /* UPDATED: Clean padding values to maximize text space and eliminate clipping */
         .appointments-table th, .appointments-table td {
             border: 1px solid rgba(125,152,163,0.31);
             padding: 12px 10px;
@@ -247,7 +246,6 @@
             background-color: #fdfaf8;
         }
         
-        /* Optimized Width Routing Matrices */
         .col-done { width: 4%; text-align: center; }
         .col-time { width: 6%; }
         .col-name { width: 13%; }
@@ -259,7 +257,7 @@
         .col-ref { width: 10%; }
         .col-diagnosis { width: 12%; }
         .col-follow { width: 8%; }
-        .col-actions { width: 4%; text-align: center; } /* Compact fit for Edit button row */
+        .col-actions { width: 4%; text-align: center; }
         .col-callback { width: 8%; }
 
         .completed-row {
@@ -405,7 +403,6 @@
         }
         .table-scroll-hint { display: none; }
 
-        /* ---- Login screen ---- */
         #loginScreen {
             position: fixed;
             inset: 0;
@@ -483,7 +480,6 @@
             background-color: #5aa9a4;
         }
 
-        /* ---- Role badge + logout ---- */
         .role-badge {
             font-size: 12px;
             font-weight: 600;
@@ -495,13 +491,11 @@
             cursor: pointer;
         }
 
-        /* ---- Reception role: hide the Done column entirely ---- */
         .role-reception .col-done,
         .role-reception .col-done-cell {
             display: none;
         }
 
-        /* ---- Locked row (visited, viewed by reception) ---- */
         .locked-row .cell-input,
         .locked-row .cell-select {
             pointer-events: none;
@@ -514,7 +508,6 @@
             pointer-events: none;
         }
 
-        /* ---- Reception totals mask ---- */
         .totals-reveal {
             display: inline-flex;
             align-items: center;
@@ -603,7 +596,7 @@
                         <th class="col-ref">Reference</th>
                         <th class="col-diagnosis">Diagnosis</th>
                         <th class="col-follow">Follow Up</th> 
-                        <th class="col-actions" style="text-align: center;">Edit</th> <!-- UPDATED: Renamed from ACTIONS to EDIT -->
+                        <th class="col-actions" style="text-align: center;">Edit</th>
                         <th class="col-callback">Call Back</th> 
                     </tr>
                 </thead>
@@ -630,11 +623,6 @@
     </div>
 
     <script>
-        // ---- Simple client-side login gate ----
-        // NOTE: This is a convenience lock, not real security. Anyone who opens
-        // browser dev tools can read these credentials in the page source and see
-        // both roles' data. Change these two passwords to your own before use,
-        // and don't reuse a password used anywhere else.
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
             doctor:    { username: 'bhavesh',    password: 'Bha@123' }
@@ -701,7 +689,6 @@
             loginError.textContent = "";
         });
 
-        // Restore session on refresh (still within the same browser tab session)
         const savedRole = sessionStorage.getItem('userRole');
         if (savedRole && CREDENTIALS[savedRole]) {
             enterDashboard(savedRole);
@@ -752,6 +739,24 @@
         dateFilter.value = today.toISOString().split('T')[0];
 
         let unsubscribe = null;
+
+        // Helper function to format HH:MM strings into 12-hour format with AM/PM
+        function formatTo12Hour(timeStr) {
+            if (!timeStr) return '';
+            const parts = timeStr.split(':');
+            if (parts.length < 2) return timeStr;
+            
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1];
+            
+            if (isNaN(hours)) return timeStr;
+            
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // The hour '0' should be '12'
+            
+            return `${hours}:${minutes} ${ampm}`;
+        }
 
         function syncAppointments() {
             if (unsubscribe) unsubscribe();
@@ -833,7 +838,7 @@
 
                     tr.innerHTML = `
                         ${doneCellHtml}
-                        <td>${data.appointment_time || ''}</td>
+                        <td>${formatTo12Hour(data.appointment_time)}</td>
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td>${data.age || '--'}</td>
@@ -886,7 +891,6 @@
                 const receptionBlockedDay = userRole === 'reception' && !isToday;
 
                 if (receptionBlockedDay) {
-                    // Past (or future) totals are off-limits to reception entirely.
                     tableFooter.style.display = "none";
                 } else if (userRole === 'reception') {
                     revealWrap.style.display = "inline-flex";
@@ -973,8 +977,6 @@
                             const docRef = doc(db, "appointments", docId);
                             const updatePayload = { [fieldName]: newValue };
                             if (fieldName === 'follow_up') {
-                                // A new/changed follow-up value means new reminder dates —
-                                // reset both flags so the WhatsApp reminder bot re-sends them.
                                 updatePayload.follow_up_sent = false;
                                 updatePayload.follow_up_day_before_sent = false;
                             }
@@ -1039,8 +1041,6 @@
         document.getElementById('nextDay').addEventListener('click', () => shiftDay(1));
         dateFilter.addEventListener('change', syncAppointments);
 
-        // Expose to the login script (this runs inside a module, which has its
-        // own scope) and only start pulling data once someone is logged in.
         window.syncAppointments = syncAppointments;
         window.stopSync = () => { if (unsubscribe) unsubscribe(); };
         if (userRole) {
