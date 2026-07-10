@@ -404,11 +404,151 @@
             }
         }
         .table-scroll-hint { display: none; }
+
+        /* ---- Login screen ---- */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: #fcfaf9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: #fff;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 6px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+        .login-box h1 {
+            font-family: "Open Sans", sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: #3a3a3a;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+        .login-field {
+            margin-bottom: 16px;
+        }
+        .login-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #7a7a7a;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .login-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            font-size: 15px;
+            background: #f5f2ea;
+            color: #49444c;
+            outline: none;
+        }
+        .login-field input:focus {
+            border-color: #72bfba;
+        }
+        .login-error {
+            color: #c0392b;
+            font-size: 13px;
+            margin-bottom: 14px;
+            min-height: 16px;
+            text-align: center;
+        }
+        .login-submit-btn {
+            width: 100%;
+            background: #72bfba;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 11px;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+        .login-submit-btn:hover {
+            background-color: #5aa9a4;
+        }
+
+        /* ---- Role badge + logout ---- */
+        .role-badge {
+            font-size: 12px;
+            font-weight: 600;
+            color: #7a7a7a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .logout-link {
+            cursor: pointer;
+        }
+
+        /* ---- Reception role: hide the Done column entirely ---- */
+        .role-reception .col-done,
+        .role-reception .col-done-cell {
+            display: none;
+        }
+
+        /* ---- Locked row (visited, viewed by reception) ---- */
+        .locked-row .cell-input,
+        .locked-row .cell-select {
+            pointer-events: none;
+            opacity: 0.6;
+            border-bottom-style: solid;
+        }
+        .edit-btn[disabled] {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* ---- Reception totals mask ---- */
+        .totals-reveal {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 14px;
+            vertical-align: middle;
+        }
+        .totals-reveal input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #87008c;
+            border: 2px solid #87008c;
+        }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>Staff Login</h1>
+            <div class="login-field">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" autocomplete="username">
+            </div>
+            <div class="login-field">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" autocomplete="current-password">
+            </div>
+            <div class="login-error" id="loginError"></div>
+            <button class="login-submit-btn" id="loginSubmitBtn">Log In</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container" id="dashboardContainer" style="display: none;">
         <div class="navbar">
             <div class="logo">Admin Dashboard</div>
             <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
@@ -417,6 +557,8 @@
             <div class="nav-links" id="navLinks">
                 <a href="index.html">Site</a>
                 <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
+                <span class="role-badge" id="roleBadge"></span>
+                <a class="logout-link" id="logoutLink">Log Out</a>
             </div>
         </div>
 
@@ -469,7 +611,12 @@
                 </tbody>
                 <tfoot id="tableFooter" style="display: none;">
                     <tr class="totals-row">
-                        <td colspan="6" class="totals-label">Totals for the day</td>
+                        <td colspan="6" class="totals-label">
+                            Totals for the day
+                            <label class="totals-reveal" id="totalsRevealWrap" style="display: none;">
+                                <input type="checkbox" id="totalsRevealCheckbox">
+                            </label>
+                        </td>
                         <td id="totalEarned" class="totals-value">₹0</td>
                         <td colspan="2" id="totalBreakdown" class="totals-value">
                             <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
@@ -483,6 +630,83 @@
     </div>
 
     <script>
+        // ---- Simple client-side login gate ----
+        // NOTE: This is a convenience lock, not real security. Anyone who opens
+        // browser dev tools can read these credentials in the page source and see
+        // both roles' data. Change these two passwords to your own before use,
+        // and don't reuse a password used anywhere else.
+        const CREDENTIALS = {
+            reception: { username: 'reception', password: 'reception123' },
+            doctor:    { username: 'bhavesh',    password: 'Bha@123' }
+        };
+
+        let userRole = null;
+
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const roleBadge = document.getElementById('roleBadge');
+        const logoutLink = document.getElementById('logoutLink');
+
+        function attemptLogin() {
+            const u = loginUsername.value.trim();
+            const p = loginPassword.value;
+            let matchedRole = null;
+
+            for (const role in CREDENTIALS) {
+                if (u === CREDENTIALS[role].username && p === CREDENTIALS[role].password) {
+                    matchedRole = role;
+                    break;
+                }
+            }
+
+            if (!matchedRole) {
+                loginError.textContent = "Incorrect username or password.";
+                loginPassword.value = "";
+                return;
+            }
+
+            sessionStorage.setItem('userRole', matchedRole);
+            enterDashboard(matchedRole);
+        }
+
+        function enterDashboard(role) {
+            userRole = role;
+            loginScreen.style.display = "none";
+            dashboardContainer.style.display = "flex";
+            document.body.classList.toggle('role-reception', role === 'reception');
+            roleBadge.textContent = role === 'doctor' ? "Doctor" : "Reception";
+            if (window.syncAppointments) window.syncAppointments();
+        }
+
+        loginSubmitBtn.addEventListener('click', attemptLogin);
+        loginPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+        loginUsername.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
+        logoutLink.addEventListener('click', () => {
+            if (window.stopSync) window.stopSync();
+            sessionStorage.removeItem('userRole');
+            userRole = null;
+            dashboardContainer.style.display = "none";
+            loginScreen.style.display = "flex";
+            loginUsername.value = "";
+            loginPassword.value = "";
+            loginError.textContent = "";
+        });
+
+        // Restore session on refresh (still within the same browser tab session)
+        const savedRole = sessionStorage.getItem('userRole');
+        if (savedRole && CREDENTIALS[savedRole]) {
+            enterDashboard(savedRole);
+        }
+
         const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
         navToggle.addEventListener('click', () => {
@@ -586,42 +810,58 @@
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
                     const isTypeUnset = (!isOnline && !isCash) ? 'selected' : '';
 
-                    tr.innerHTML = `
-                        <td style="text-align: center;">
+                    const isReception = userRole === 'reception';
+                    const isLocked = isReception && isVisited;
+                    if (isLocked) tr.classList.add('locked-row');
+
+                    const doneCellHtml = isReception
+                        ? `<td class="col-done-cell"></td>`
+                        : `<td style="text-align: center;">
                             <input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>
-                        </td>
+                        </td>`;
+
+                    const actionsHtml = isReception
+                        ? `<div class="action-container">
+                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment" ${isLocked ? 'disabled' : ''}>✏️</button>
+                            </div>`
+                        : `<div class="action-container">
+                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
+                                <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
+                            </div>`;
+
+                    const lockedInputAttr = isLocked ? 'disabled' : '';
+
+                    tr.innerHTML = `
+                        ${doneCellHtml}
                         <td>${data.appointment_time || ''}</td>
                         <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td>${data.age || '--'}</td>
                         <td>${data.patient_address || '--'}</td>
                         <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0">
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0" ${lockedInputAttr}>
                         </td>
                         <td>
-                            <select class="cell-select cell-select-action" data-id="${data.id}" data-field="payment_type">
+                            <select class="cell-select cell-select-action" data-id="${data.id}" data-field="payment_type" ${lockedInputAttr}>
                                 <option value="" ${isTypeUnset}>--</option>
                                 <option value="Online" ${isOnline}>Online</option>
                                 <option value="Cash" ${isCash}>Cash</option>
                             </select>
                         </td>
                         <td>
-                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="...">
+                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="..." ${lockedInputAttr}>
                         </td>
                         <td>
-                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="...">
+                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="..." ${lockedInputAttr}>
                         </td>
                         <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0">
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
                         </td>
                         <td>
-                            <div class="action-container">
-                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
-                                <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
-                            </div>
+                            ${actionsHtml}
                         </td>
                         <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0">
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
                         </td>
                     `;
                     tableBody.appendChild(tr);
@@ -639,10 +879,36 @@
                         totalOnline += amount;
                     }
                 });
-                totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
-                totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
-                totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
-                tableFooter.style.display = "";
+                const revealWrap = document.getElementById('totalsRevealWrap');
+                const revealCheckbox = document.getElementById('totalsRevealCheckbox');
+                const todayStr = new Date().toISOString().split('T')[0];
+                const isToday = dateFilter.value === todayStr;
+                const receptionBlockedDay = userRole === 'reception' && !isToday;
+
+                if (receptionBlockedDay) {
+                    // Past (or future) totals are off-limits to reception entirely.
+                    tableFooter.style.display = "none";
+                } else if (userRole === 'reception') {
+                    revealWrap.style.display = "inline-flex";
+                    const amountsShown = revealCheckbox.checked;
+                    if (amountsShown) {
+                        totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
+                        totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
+                        totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
+                    } else {
+                        totalEarnedEl.textContent = "••••";
+                        totalCashEl.textContent = "Cash ••••";
+                        totalOnlineEl.textContent = "Online ••••";
+                    }
+                    revealCheckbox.onchange = syncAppointments;
+                    tableFooter.style.display = "";
+                } else {
+                    revealWrap.style.display = "none";
+                    totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
+                    totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
+                    totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
+                    tableFooter.style.display = "";
+                }
 
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
@@ -773,7 +1039,13 @@
         document.getElementById('nextDay').addEventListener('click', () => shiftDay(1));
         dateFilter.addEventListener('change', syncAppointments);
 
-        syncAppointments();
+        // Expose to the login script (this runs inside a module, which has its
+        // own scope) and only start pulling data once someone is logged in.
+        window.syncAppointments = syncAppointments;
+        window.stopSync = () => { if (unsubscribe) unsubscribe(); };
+        if (userRole) {
+            syncAppointments();
+        }
     </script>
 </body>
 </html>
