@@ -433,12 +433,23 @@
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('editId');
 
-        dateInput.value = new Date().toISOString().split('T')[0];
+        // Formats a Date object as a YYYY-MM-DD string using its LOCAL calendar date.
+        // We avoid Date#toISOString() here since it converts to UTC first — for
+        // timezones ahead of UTC (like India, UTC+5:30), a local midnight timestamp
+        // can roll back into the previous UTC day, defaulting this field to yesterday.
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        dateInput.value = toLocalDateStr(new Date());
 
         let bookedTimesSet = new Set();
 
         function generateTimeSlots(service) {
-            const interval = service === 'Laser Hair Removal' ? 60 : 15;
+            const interval = service === 'Laser Hair Removal' ? 60 : 10;
             const slots = [];
             
             // Shift 1: 10:00 AM to 2:00 PM (14:00)
@@ -744,7 +755,7 @@
                     alert(`Appointment logged successfully! Assigned to slot: ${displayStr}`);
                     
                     document.getElementById('createAppointmentForm').reset();
-                    dateInput.value = new Date().toISOString().split('T')[0];
+                    dateInput.value = toLocalDateStr(new Date());
                     customTimeInput.style.display = "none";
                     customTimeInput.removeAttribute('required');
                     clearAutoPopulatedFields();
