@@ -521,6 +521,138 @@
             accent-color: #87008c;
             border: 2px solid #87008c;
         }
+
+        /* ---------- Call Back Reminder Modal ---------- */
+        .callback-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(58, 58, 58, 0.55);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .callback-modal {
+            background: #fff;
+            width: 100%;
+            max-width: 480px;
+            max-height: 82vh;
+            border-radius: 6px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .callback-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-bottom: 3px solid #87008c;
+            flex-shrink: 0;
+        }
+        .callback-modal-header h2 {
+            font-family: "Open Sans", sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: #3a3a3a;
+        }
+        .callback-modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            color: #7a7a7a;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .callback-modal-close:hover {
+            color: #87008c;
+        }
+        .callback-modal-subtext {
+            padding: 12px 22px 0;
+            font-size: 13px;
+            color: #7a7a7a;
+            flex-shrink: 0;
+        }
+        .callback-modal-body {
+            padding: 16px 22px 22px;
+            overflow-y: auto;
+        }
+        .callback-row {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .callback-row:last-child {
+            margin-bottom: 0;
+        }
+        .callback-check-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 48px;
+        }
+        .callback-check-col input[type="checkbox"] {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            accent-color: #4caf82;
+            border: 2px solid #cc9955;
+            border-radius: 4px;
+        }
+        .callback-entry {
+            flex: 1 1 auto;
+            min-width: 0;
+            background: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-left: 4px solid #cc9955;
+            border-radius: 4px;
+            padding: 12px 16px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .callback-entry.callback-done {
+            background: #e2f3ec;
+            border-left-color: #4caf82;
+        }
+        .callback-entry-name {
+            font-family: "Open Sans", sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: #49444c;
+            margin-bottom: 8px;
+        }
+        .callback-entry-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 3px 0;
+            color: #49444c;
+        }
+        .callback-entry-row span:first-child {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+            color: #7a7a7a;
+        }
+        .callback-entry-row span:last-child {
+            text-align: right;
+            max-width: 65%;
+        }
+        .callback-empty {
+            text-align: center;
+            padding: 30px 10px;
+            color: #7a7a7a;
+            font-style: italic;
+            font-size: 14px;
+        }
+        .callback-nav-btn {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -549,6 +681,7 @@
             </button>
             <div class="nav-links" id="navLinks">
                 <a href="index.html">Site</a>
+                <a class="callback-nav-btn" id="callbackNavBtn">📞 Call Backs</a>
                 <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
                 <span class="role-badge" id="roleBadge"></span>
                 <a class="logout-link" id="logoutLink">Log Out</a>
@@ -622,6 +755,17 @@
         </div>
     </div>
 
+    <div class="callback-modal-overlay" id="callbackModal">
+        <div class="callback-modal">
+            <div class="callback-modal-header">
+                <h2>📞 Today's Call Back Reminders</h2>
+                <button class="callback-modal-close" id="callbackModalClose">&times;</button>
+            </div>
+            <div class="callback-modal-subtext">The following patients are due for a call back today.</div>
+            <div class="callback-modal-body" id="callbackModalBody"></div>
+        </div>
+    </div>
+
     <script>
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
@@ -668,6 +812,22 @@
             document.body.classList.toggle('role-reception', role === 'reception');
             roleBadge.textContent = role === 'doctor' ? "Doctor" : "Reception";
             if (window.syncAppointments) window.syncAppointments();
+            if (role === 'reception') maybeShowCallbackReminders();
+        }
+
+        // Shows the call back reminder popup once per reception login session.
+        // Waits for the Firebase module script below to finish loading if needed.
+        function maybeShowCallbackReminders() {
+            if (sessionStorage.getItem('callbackPopupShown')) return;
+            sessionStorage.setItem('callbackPopupShown', '1');
+            const tryShow = () => {
+                if (window.checkCallbackReminders) {
+                    window.checkCallbackReminders();
+                } else {
+                    setTimeout(tryShow, 100);
+                }
+            };
+            tryShow();
         }
 
         loginSubmitBtn.addEventListener('click', attemptLogin);
@@ -681,6 +841,7 @@
         logoutLink.addEventListener('click', () => {
             if (window.stopSync) window.stopSync();
             sessionStorage.removeItem('userRole');
+            sessionStorage.removeItem('callbackPopupShown');
             userRole = null;
             dashboardContainer.style.display = "none";
             loginScreen.style.display = "flex";
@@ -705,7 +866,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -727,6 +888,115 @@
         const totalCashEl = document.getElementById('totalCashText');
         const totalOnlineEl = document.getElementById('totalOnlineText');
 
+        // --- Call Back Reminder popup ---
+        const callbackModal = document.getElementById('callbackModal');
+        const callbackModalBody = document.getElementById('callbackModalBody');
+        const callbackModalClose = document.getElementById('callbackModalClose');
+
+        callbackModalClose.addEventListener('click', () => {
+            callbackModal.style.display = "none";
+        });
+        callbackModal.addEventListener('click', (e) => {
+            if (e.target === callbackModal) callbackModal.style.display = "none";
+        });
+
+        const callbackNavBtn = document.getElementById('callbackNavBtn');
+        callbackNavBtn.addEventListener('click', () => {
+            checkCallbackReminders(true);
+        });
+
+        // The "call back" column stores a number of days, but every write also
+        // computes and stores call_back_due_date (an ISO date string) so we can
+        // query directly for "who's due today" instead of scanning every
+        // appointment in the collection.
+        async function checkCallbackReminders(forceShow = false) {
+            try {
+                const todayStr = toLocalDateStr(new Date());
+                const q = query(
+                    collection(db, "appointments"),
+                    where("call_back_due_date", "==", todayStr)
+                );
+                const snapshot = await getDocs(q);
+                const dueToday = [];
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    dueToday.push({
+                        name: data.patient_name || '—',
+                        phone: data.patient_phone || '—',
+                        lastVisit: data.appointment_date || '—',
+                        diagnosis: data.diagnosis || '—'
+                    });
+                });
+
+                if (dueToday.length > 0 || forceShow) {
+                    renderCallbackReminders(dueToday);
+                }
+            } catch (err) {
+                console.error("Failed to check call back reminders: ", err);
+                if (forceShow) {
+                    callbackModalBody.innerHTML = `<div class="callback-empty">Couldn't load call back reminders. Please try again.</div>`;
+                    callbackModal.style.display = "flex";
+                }
+            }
+        }
+
+        function renderCallbackReminders(entries) {
+            if (entries.length === 0) {
+                callbackModalBody.innerHTML = `<div class="callback-empty">No call backs due today. 🎉</div>`;
+                callbackModal.style.display = "flex";
+                return;
+            }
+
+            callbackModalBody.innerHTML = entries.map((entry, i) => {
+                const visitDate = new Date(`${entry.lastVisit}T00:00:00`);
+                const visitDateFormatted = isNaN(visitDate)
+                    ? entry.lastVisit
+                    : visitDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                return `
+                    <div class="callback-row" data-entry-index="${i}">
+                        <div class="callback-check-col">
+                            <input type="checkbox" class="callback-done-checkbox" title="Mark as called">
+                        </div>
+                        <div class="callback-entry">
+                            <div class="callback-entry-name">${entry.name}</div>
+                            <div class="callback-entry-row"><span>Phone</span><span>${entry.phone}</span></div>
+                            <div class="callback-entry-row"><span>Last Visit</span><span>${visitDateFormatted}</span></div>
+                            <div class="callback-entry-row"><span>Diagnosis</span><span>${entry.diagnosis}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            callbackModalBody.querySelectorAll('.callback-done-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const rowEl = e.target.closest('.callback-row');
+                    const entryEl = rowEl.querySelector('.callback-entry');
+                    const isDone = e.target.checked;
+
+                    entryEl.classList.toggle('callback-done', isDone);
+
+                    if (isDone) {
+                        // Send it to the bottom of the list.
+                        callbackModalBody.appendChild(rowEl);
+                    } else {
+                        // Pull it back up, just above the first "called" card (if any).
+                        const firstDoneRow = callbackModalBody.querySelector('.callback-entry.callback-done')?.closest('.callback-row');
+                        if (firstDoneRow && firstDoneRow !== rowEl) {
+                            callbackModalBody.insertBefore(rowEl, firstDoneRow);
+                        } else {
+                            callbackModalBody.appendChild(rowEl);
+                        }
+                    }
+                });
+            });
+
+            callbackModal.style.display = "flex";
+        }
+
+        window.checkCallbackReminders = checkCallbackReminders;
+
         const consultationServiceBtn = document.getElementById('consultationServiceBtn');
         const laserServiceBtn = document.getElementById('laserServiceBtn');
         let activeService = 'Consultation';
@@ -736,7 +1006,7 @@
         let activeShift = 'morning'; 
 
         const today = new Date();
-        dateFilter.value = today.toISOString().split('T')[0];
+        dateFilter.value = toLocalDateStr(today);
 
         let unsubscribe = null;
 
@@ -756,6 +1026,18 @@
             hours = hours ? hours : 12; // The hour '0' should be '12'
             
             return `${hours}:${minutes} ${ampm}`;
+        }
+
+        // Formats a Date object as a YYYY-MM-DD string using its LOCAL calendar date.
+        // We deliberately avoid Date#toISOString() for this, since toISOString()
+        // converts to UTC first — for timezones ahead of UTC (like India, UTC+5:30),
+        // a local midnight timestamp rolls back into the previous UTC day, which
+        // silently shaves a day off any date-only calculation (e.g. call back due dates).
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
         function syncAppointments() {
@@ -866,10 +1148,26 @@
                             ${actionsHtml}
                         </td>
                         <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
+                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" data-appt-date="${data.appointment_date || ''}" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
                         </td>
                     `;
                     tableBody.appendChild(tr);
+
+                    // Self-healing backfill: if this record has a call_back set but its
+                    // call_back_due_date field is missing or stale, quietly recompute and
+                    // save it so future reminder lookups can query the field directly
+                    // instead of scanning the whole collection.
+                    if (data.call_back && data.appointment_date) {
+                        const baseDate = new Date(`${data.appointment_date}T00:00:00`);
+                        if (!isNaN(baseDate)) {
+                            baseDate.setDate(baseDate.getDate() + Number(data.call_back));
+                            const expectedDueDate = toLocalDateStr(baseDate);
+                            if (data.call_back_due_date !== expectedDueDate) {
+                                updateDoc(doc(db, "appointments", data.id), { call_back_due_date: expectedDueDate })
+                                    .catch(err => console.error("Call back due-date backfill failed: ", err));
+                            }
+                        }
+                    }
                 });
 
                 let totalEarned = 0;
@@ -886,7 +1184,7 @@
                 });
                 const revealWrap = document.getElementById('totalsRevealWrap');
                 const revealCheckbox = document.getElementById('totalsRevealCheckbox');
-                const todayStr = new Date().toISOString().split('T')[0];
+                const todayStr = toLocalDateStr(new Date());
                 const isToday = dateFilter.value === todayStr;
                 const receptionBlockedDay = userRole === 'reception' && !isToday;
 
@@ -980,6 +1278,18 @@
                                 updatePayload.follow_up_sent = false;
                                 updatePayload.follow_up_day_before_sent = false;
                             }
+                            if (fieldName === 'call_back') {
+                                const apptDateStr = e.target.getAttribute('data-appt-date');
+                                if (newValue !== "" && apptDateStr) {
+                                    const dueDate = new Date(`${apptDateStr}T00:00:00`);
+                                    if (!isNaN(dueDate)) {
+                                        dueDate.setDate(dueDate.getDate() + Number(newValue));
+                                        updatePayload.call_back_due_date = toLocalDateStr(dueDate);
+                                    }
+                                } else {
+                                    updatePayload.call_back_due_date = null;
+                                }
+                            }
                             await updateDoc(docRef, updatePayload);
                             console.log(`Updated database field [${fieldName}] to:`, newValue);
                         } catch (err) {
@@ -1027,7 +1337,7 @@
         function shiftDay(offset) {
             const currentDate = new Date(dateFilter.value);
             currentDate.setDate(currentDate.getDate() + offset);
-            dateFilter.value = currentDate.toISOString().split('T')[0];
+            dateFilter.value = toLocalDateStr(currentDate);
             syncAppointments();
         }
 
