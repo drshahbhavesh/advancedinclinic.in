@@ -836,48 +836,93 @@
         .patient-session-table tbody tr:last-child td {
             border-bottom: none;
         }
-        .patient-session-table tbody tr:nth-child(even) {
+        .patient-session-table tbody tr.session-row-beige {
             background: #fbfaf8;
         }
-        .patient-session-edit-btn {
-            display: inline-flex;
+        .patient-session-table tbody tr.session-row-white {
+            background: #ffffff;
+        }
+        /* The row where the color flips marks a breakpoint — a more
+           prominent divider against the row above it than the regular
+           1px row dividers elsewhere in the table. */
+        .patient-session-table tbody tr.session-row-break td {
+            border-top: 2px solid rgba(125,152,163,0.5);
+        }
+        .session-cell-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px dashed rgba(125,152,163,0.5);
+            background: transparent;
+            padding: 4px;
+            font-size: 16px;
+            font-family: "Open Sans", sans-serif;
+            color: #49444c;
+            outline: none;
+            text-align: center;
+        }
+        .session-cell-input:focus {
+            border-bottom: 1px solid #72bfba;
+            background-color: #f5f2ea;
+        }
+        .session-date-wrap {
+            display: flex;
             align-items: center;
             justify-content: center;
+            gap: 4px;
+        }
+        .session-date-input {
+            border: none;
+            border-bottom: 1px dashed rgba(125,152,163,0.5);
+            background: transparent;
+            padding: 4px 2px;
+            font-size: 14px;
+            font-family: "Open Sans", sans-serif;
+            color: #49444c;
+            outline: none;
+            width: 100%;
+            min-width: 0;
+        }
+        .session-date-input:focus {
+            border-bottom: 1px solid #72bfba;
+            background-color: #f5f2ea;
+        }
+        /* Hide the "dd/mm/yyyy" placeholder text while the date is empty and
+           unfocused, so blank rows look clean instead of cluttered. It
+           reappears while actively focused/typing, and of course once a
+           real date is set. */
+        .session-date-input.date-empty:not(:focus) {
+            color: transparent;
+        }
+        /* Hide the browser's own calendar icon — our custom button (below)
+           is the single control for opening the picker, so there's only
+           ever one calendar icon visible per row instead of two. */
+        .session-date-input::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+        .session-date-input::-webkit-inner-spin-button {
+            display: none;
+        }
+        .session-date-btn {
+            flex-shrink: 0;
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            text-decoration: none;
-            padding: 4px;
+            padding: 3px 4px;
             border-radius: 4px;
-            transition: background-color 0.15s;
+            line-height: 1;
+            transition: background-color 0.15s, opacity 0.15s;
+            opacity: 0;
         }
-        .patient-session-edit-btn:hover {
+        /* Calendar button only appears on hover (or keyboard focus, for
+           accessibility) so it doesn't clutter the row the rest of the time. */
+        .patient-session-table tbody tr:hover .session-date-btn,
+        .session-date-btn:focus {
+            opacity: 1;
+        }
+        .session-date-btn:hover {
             background-color: rgba(135,0,140,0.1);
-        }
-        .patient-view-footer {
-            padding: 16px 28px;
-            border-top: 1px solid rgba(125,152,163,0.31);
-            display: flex;
-            justify-content: flex-end;
-            flex-shrink: 0;
-        }
-        .patient-view-new-entry-btn {
-            display: inline-block;
-            background-color: #72bfba;
-            color: #fff !important;
-            text-decoration: none;
-            padding: 11px 24px;
-            border-radius: 3px;
-            font-family: "Open Sans", sans-serif;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            transition: background-color 0.2s;
-        }
-        .patient-view-new-entry-btn:hover {
-            background-color: #5aa9a4;
         }
     </style>
 </head>
@@ -1015,16 +1060,14 @@
             </div>
             <div class="patient-view-divider"></div>
             <div class="patient-view-body" id="patientViewBody"></div>
-            <div class="patient-view-footer">
-                <a href="#" id="patientViewNewEntryBtn" class="patient-view-new-entry-btn" target="_blank" rel="noopener">+ New Entry</a>
-            </div>
         </div>
     </div>
 
     <script>
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
-            doctor:    { username: 'bhavesh',    password: 'Bha@123' }
+            doctor:    { username: 'bhavesh',    password: 'Bha@123' },
+            doctor:    {username: 'Bhavesh', password: 'Bha@123'}
         };
 
         let userRole = null;
@@ -1121,7 +1164,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -1167,7 +1210,6 @@
         const patientViewPhone = document.getElementById('patientViewPhone');
         const patientViewId = document.getElementById('patientViewId');
         const patientViewBody = document.getElementById('patientViewBody');
-        const patientViewNewEntryBtn = document.getElementById('patientViewNewEntryBtn');
 
         patientViewClose.addEventListener('click', () => {
             patientViewModal.style.display = "none";
@@ -1204,39 +1246,217 @@
                 patientViewId.textContent = patientId;
                 patientViewBody.innerHTML = `<div class="patient-view-placeholder">Loading session history…</div>`;
 
-                const newEntryParams = new URLSearchParams({
-                    patientId: patientId,
-                    name: data.patient_name || '',
-                    phone: data.patient_phone || ''
-                });
-                patientViewNewEntryBtn.href = `laser-session.html?${newEntryParams.toString()}`;
-
                 patientViewModal.style.display = "flex";
 
-                await renderPatientSessionHistory(patientId);
+                await renderPatientSessionHistory(patientId, data.patient_name || '', data.patient_phone || '');
             } catch (err) {
                 console.error("Failed to open patient view: ", err);
             }
         }
 
-        // Session history table: one row per past Laser Hair Removal visit for
-        // this patient. Queried by patient_id alone (a single equality filter,
-        // so it relies only on Firestore's automatic single-field index — no
-        // composite index needs to be created), then filtered/sorted client-side.
+        // Session history table: editable directly inline, one row per past
+        // Laser Hair Removal visit for this patient, plus one always-blank
+        // "pending" row at the end ready for the next entry. Queried by
+        // patient_id alone (a single equality filter, so it relies only on
+        // Firestore's automatic single-field index — no composite index
+        // needs to be created), then filtered/sorted client-side.
         const SESSION_COLUMNS = [
-            { key: 'area',   label: 'Area',   width: 18 },
-            { key: 'carbon', label: 'Carbon', width: 7  },
-            { key: 'mode',   label: 'Mode',   width: 11 },
-            { key: 'hp',     label: 'HP',     width: 9  },
-            { key: 'eng',    label: 'Eng',    width: 9  },
-            { key: 'pass',   label: 'Pass',   width: 7  },
-            { key: 'repeat', label: 'Repeat', width: 8  },
-            { key: 'fees',   label: 'Fees',   width: 10 }
+            { key: 'area',   label: 'Area',   width: 18, type: 'text'   },
+            { key: 'carbon', label: 'Carbon', width: 8,  type: 'select' },
+            { key: 'mode',   label: 'Mode',   width: 12, type: 'text'   },
+            { key: 'hp',     label: 'HP',     width: 10, type: 'text'   },
+            { key: 'eng',    label: 'Eng',    width: 9,  type: 'number' },
+            { key: 'pass',   label: 'Pass',   width: 8,  type: 'number' },
+            { key: 'repeat', label: 'Repeat', width: 9,  type: 'number' },
+            { key: 'fees',   label: 'Fees',   width: 11, type: 'number' }
         ];
         const DATE_COLUMN_WIDTH = 15;
-        const EDIT_COLUMN_WIDTH = 6;
 
-        async function renderPatientSessionHistory(patientId) {
+        // Per-popup-session state: maps a client-side row key to its Firestore
+        // doc ID (null until the row's first field is actually saved), plus
+        // an in-flight creation promise per row to prevent a race condition
+        // where quickly filling two fields on a brand-new row could create
+        // two separate documents instead of one.
+        let currentPatientContext = null;
+        let rowDocIds = {};
+        let rowCreationPromises = {};
+
+        function nowTimeStr() {
+            const now = new Date();
+            return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function makeRowKey() {
+            return 'row-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        }
+
+        // Toggles a class that hides the "dd/mm/yyyy" placeholder look while
+        // a date input has no value (and isn't focused) — see CSS.
+        function updateDateEmptyClass(input) {
+            if (!input) return;
+            input.classList.toggle('date-empty', !input.value);
+        }
+
+        // Row striping isn't based on position (odd/even) — it's a running
+        // toggle that only flips on rows where a date has actually been
+        // entered. Rows without a date just inherit whatever the current
+        // color is. Recomputed top-to-bottom any time a date changes or a
+        // row is added, so it always reflects the latest state correctly.
+        function recalculateRowColors() {
+            const tbody = document.getElementById('sessionTableBody');
+            if (!tbody) return;
+            let isBeige = false;
+            Array.from(tbody.children).forEach((rowEl, index) => {
+                const dateInput = rowEl.querySelector('.session-date-input');
+                const hasDate = !!(dateInput && dateInput.value);
+                if (hasDate) isBeige = !isBeige;
+                rowEl.classList.toggle('session-row-beige', isBeige);
+                rowEl.classList.toggle('session-row-white', !isBeige);
+                // The row that triggers a color change is a visual breakpoint —
+                // give it a more prominent divider against the row above it.
+                // Skip the very first row since there's nothing above it.
+                rowEl.classList.toggle('session-row-break', hasDate && index > 0);
+            });
+        }
+
+        function buildSessionRowHtml(rowKey, data) {
+            const dateVal = data.appointment_date || '';
+            const dateCell = `
+                <td>
+                    <div class="session-date-wrap">
+                        <input type="date" class="session-date-input" data-row="${rowKey}" data-field="appointment_date" value="${dateVal}">
+                        <button type="button" class="session-date-btn" data-row="${rowKey}" title="Set today's date / open calendar">📅</button>
+                    </div>
+                </td>
+            `;
+
+            const fieldCells = SESSION_COLUMNS.map(col => {
+                const val = data[col.key] ?? '';
+                if (col.type === 'select') {
+                    return `
+                        <td>
+                            <select class="session-cell-input" data-row="${rowKey}" data-field="${col.key}">
+                                <option value="" ${val === '' ? 'selected' : ''}>-- Select --</option>
+                                <option value="Yes" ${val === 'Yes' ? 'selected' : ''}>Yes</option>
+                                <option value="No" ${val === 'No' ? 'selected' : ''}>No</option>
+                            </select>
+                        </td>
+                    `;
+                }
+                const inputType = col.type === 'number' ? 'number' : 'text';
+                const minAttr = col.type === 'number' ? 'min="0"' : '';
+                return `<td><input type="${inputType}" class="session-cell-input" data-row="${rowKey}" data-field="${col.key}" value="${val}" ${minAttr}></td>`;
+            }).join('');
+
+            return `<tr data-row-key="${rowKey}">${dateCell}${fieldCells}</tr>`;
+        }
+
+        function wireSessionRowElements(rowEl) {
+            rowEl.querySelectorAll('.session-cell-input').forEach(el => {
+                const evt = el.tagName === 'SELECT' ? 'change' : 'blur';
+                el.addEventListener(evt, handleSessionFieldCommit);
+            });
+            rowEl.querySelectorAll('.session-date-input').forEach(el => {
+                el.addEventListener('change', handleSessionFieldCommit);
+                updateDateEmptyClass(el);
+            });
+            rowEl.querySelectorAll('.session-date-btn').forEach(btn => {
+                btn.addEventListener('click', handleDateButtonClick);
+            });
+        }
+
+        function appendNewPendingRow() {
+            const tbody = document.getElementById('sessionTableBody');
+            if (!tbody) return;
+            const newRowKey = makeRowKey();
+            rowDocIds[newRowKey] = null;
+            tbody.insertAdjacentHTML('beforeend', buildSessionRowHtml(newRowKey, {}));
+            const newRow = tbody.querySelector(`tr[data-row-key="${newRowKey}"]`);
+            if (newRow) wireSessionRowElements(newRow);
+            recalculateRowColors();
+        }
+
+        async function createSessionRowDoc(rowKey) {
+            const payload = {
+                service_type: "Laser Hair Removal",
+                entry_kind: "session_log",
+                patient_id: currentPatientContext.patientId,
+                patient_name: currentPatientContext.patientName,
+                patient_phone: currentPatientContext.patientPhone,
+                appointment_date: "",
+                appointment_time: nowTimeStr(),
+                area: "", carbon: "", mode: "", hp: "", eng: "", pass: "", repeat: "", fees: "",
+                status: "Visited",
+                createdAt: new Date()
+            };
+            const newDocRef = await addDoc(collection(db, "appointments"), payload);
+            rowDocIds[rowKey] = newDocRef.id;
+
+            // This pending row just became a real entry — make sure a fresh
+            // blank row is always available below for the next one.
+            appendNewPendingRow();
+
+            return newDocRef.id;
+        }
+
+        async function commitSessionRowField(rowKey, field, value) {
+            let docId = rowDocIds[rowKey];
+
+            if (!docId) {
+                if (!rowCreationPromises[rowKey]) {
+                    rowCreationPromises[rowKey] = createSessionRowDoc(rowKey);
+                }
+                docId = await rowCreationPromises[rowKey];
+            }
+
+            try {
+                await updateDoc(doc(db, "appointments", docId), { [field]: value });
+            } catch (err) {
+                console.error(`Failed to save ${field} for row: `, err);
+            }
+        }
+
+        function handleSessionFieldCommit(e) {
+            const el = e.target;
+            const rowKey = el.dataset.row;
+            const field = el.dataset.field;
+            let value = el.value;
+
+            if (['eng', 'pass', 'repeat', 'fees'].includes(field) && value !== '') {
+                value = Number(value);
+            }
+
+            if (field === 'appointment_date') {
+                updateDateEmptyClass(el);
+                recalculateRowColors();
+            }
+
+            commitSessionRowField(rowKey, field, value);
+        }
+
+        function handleDateButtonClick(e) {
+            const btn = e.currentTarget;
+            const rowKey = btn.dataset.row;
+            const row = btn.closest('tr');
+            const dateInput = row ? row.querySelector('.session-date-input') : null;
+            if (!dateInput) return;
+
+            const todayStr = toLocalDateStr(new Date());
+            dateInput.value = todayStr;
+            updateDateEmptyClass(dateInput);
+            recalculateRowColors();
+            commitSessionRowField(rowKey, 'appointment_date', todayStr);
+
+            if (typeof dateInput.showPicker === 'function') {
+                try { dateInput.showPicker(); } catch (err) { /* ignore */ }
+            }
+        }
+
+        async function renderPatientSessionHistory(patientId, patientName, patientPhone) {
+            currentPatientContext = { patientId, patientName, patientPhone };
+            rowDocIds = {};
+            rowCreationPromises = {};
+
             try {
                 const q = query(
                     collection(db, "appointments"),
@@ -1250,9 +1470,8 @@
                     if (d.service_type !== 'Laser Hair Removal') return;
 
                     // Skip the original booking record itself if no session details
-                    // have actually been logged for it yet — otherwise it shows up
-                    // as a blank row sharing the same date as any real entry logged
-                    // for that day, effectively "doubling" the date.
+                    // have actually been logged for it yet — this table is only for
+                    // genuine logged sessions, not the appointment slot booking.
                     const hasSessionData = SESSION_COLUMNS.some(col => d[col.key]);
                     if (!hasSessionData) return;
 
@@ -1270,48 +1489,34 @@
                 sessions.sort((a, b) => {
                     const aKey = `${a.appointment_date || ''}T${a.appointment_time || ''}`;
                     const bKey = `${b.appointment_date || ''}T${b.appointment_time || ''}`;
-                    return bKey.localeCompare(aKey); // most recent first
+                    return aKey.localeCompare(bKey); // oldest first, newest (and the blank row) at the bottom
                 });
 
-                if (sessions.length === 0) {
-                    patientViewBody.innerHTML = `<div class="patient-view-placeholder">No past laser sessions found for this patient.</div>`;
-                    return;
-                }
+                sessions.forEach(s => { rowDocIds[s.id] = s.id; });
 
                 const headerHtml = SESSION_COLUMNS.map(col => `<th>${col.label}</th>`).join('');
                 const colgroupHtml = `<col style="width:${DATE_COLUMN_WIDTH}%">` +
-                    SESSION_COLUMNS.map(col => `<col style="width:${col.width}%">`).join('') +
-                    `<col style="width:${EDIT_COLUMN_WIDTH}%">`;
-                const rowsHtml = sessions.map(s => {
-                    const dateObj = s.appointment_date ? new Date(`${s.appointment_date}T00:00:00`) : null;
-                    const dateFormatted = dateObj && !isNaN(dateObj)
-                        ? dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                        : (s.appointment_date || '—');
+                    SESSION_COLUMNS.map(col => `<col style="width:${col.width}%">`).join('');
 
-                    const cellsHtml = SESSION_COLUMNS.map(col => `<td>${s[col.key] || '—'}</td>`).join('');
-
-                    const editParams = new URLSearchParams({
-                        editId: s.id,
-                        patientId: patientId,
-                        name: s.patient_name || '',
-                        phone: s.patient_phone || ''
-                    });
-                    const editCell = `<td><a href="laser-session.html?${editParams.toString()}" target="_blank" class="patient-session-edit-btn" title="Edit Entry">✏️</a></td>`;
-
-                    return `<tr><td>${dateFormatted}</td>${cellsHtml}${editCell}</tr>`;
-                }).join('');
+                const existingRowsHtml = sessions.map(s => buildSessionRowHtml(s.id, s)).join('');
+                const pendingRowKey = makeRowKey();
+                rowDocIds[pendingRowKey] = null;
+                const pendingRowHtml = buildSessionRowHtml(pendingRowKey, {});
 
                 patientViewBody.innerHTML = `
                     <div class="patient-session-table-wrap">
                         <table class="patient-session-table">
                             <colgroup>${colgroupHtml}</colgroup>
                             <thead>
-                                <tr><th>Date</th>${headerHtml}<th>Edit</th></tr>
+                                <tr><th>Date</th>${headerHtml}</tr>
                             </thead>
-                            <tbody>${rowsHtml}</tbody>
+                            <tbody id="sessionTableBody">${existingRowsHtml}${pendingRowHtml}</tbody>
                         </table>
                     </div>
                 `;
+
+                document.querySelectorAll('#sessionTableBody tr').forEach(rowEl => wireSessionRowElements(rowEl));
+                recalculateRowColors();
             } catch (err) {
                 console.error("Failed to load patient session history: ", err);
                 patientViewBody.innerHTML = `<div class="patient-view-placeholder">Couldn't load session history.</div>`;
