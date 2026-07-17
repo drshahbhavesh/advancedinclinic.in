@@ -653,6 +653,232 @@
         .callback-nav-btn {
             cursor: pointer;
         }
+
+        /* ---------- Patient View Modal ---------- */
+        .patient-name-link {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: #87008c;
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            cursor: pointer;
+            transition: text-decoration-color 0.15s;
+        }
+        .patient-name-link:hover {
+            text-decoration-color: #87008c;
+        }
+        .patient-view-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(58, 58, 58, 0.55);
+            z-index: 2100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .patient-view-panel {
+            position: relative;
+            background: #fff;
+            width: 80vw;
+            height: 85vh;
+            max-width: 1700px;
+            max-height: 92vh;
+            border-radius: 6px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .patient-view-badge {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 700;
+            font-size: 30px;
+            line-height: 1;
+            letter-spacing: 0.5px;
+            box-shadow: 0 5px 16px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 900px) {
+            .patient-view-panel {
+                width: 92vw;
+                height: 88vh;
+            }
+            .patient-view-badge {
+                width: 66px;
+                height: 66px;
+                font-size: 19px;
+            }
+            .patient-view-header {
+                grid-template-columns: 1fr;
+                justify-items: center;
+            }
+        }
+        .patient-view-topbar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 14px 0;
+            flex-shrink: 0;
+        }
+        .patient-view-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            color: #7a7a7a;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .patient-view-close:hover {
+            color: #87008c;
+        }
+        .patient-view-header {
+            display: grid;
+            grid-template-columns: 100px 1fr 100px;
+            align-items: center;
+            gap: 24px;
+            padding: 4px 28px 20px;
+            flex-shrink: 0;
+        }
+        .patient-view-header-info {
+            text-align: center;
+        }
+        .patient-view-name {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 24px;
+            color: #49444c;
+            margin-bottom: 10px;
+        }
+        .patient-view-meta {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            row-gap: 6px;
+        }
+        .patient-view-meta-item {
+            font-size: 13px;
+            color: #7a7a7a;
+        }
+        .patient-view-meta-item strong {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #cc9955;
+            margin-bottom: 2px;
+        }
+        .patient-view-divider {
+            height: 1px;
+            background: rgba(125,152,163,0.35);
+            margin: 0 28px;
+            flex-shrink: 0;
+        }
+        .patient-view-body {
+            padding: 22px 28px 28px;
+            overflow-y: auto;
+            flex: 1 1 auto;
+        }
+        .patient-view-placeholder {
+            text-align: center;
+            color: #7a7a7a;
+            font-style: italic;
+            font-size: 13px;
+            padding: 24px 0;
+        }
+
+        /* Session history table inside the Patient View */
+        .patient-session-table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 4px;
+        }
+        .patient-session-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 16px;
+        }
+        .patient-session-table thead th {
+            background: #f5f2ea;
+            color: #49444c;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-size: 13.5px;
+            padding: 16px 10px;
+            border-bottom: 2px solid rgba(125,152,163,0.35);
+            text-align: center;
+        }
+        .patient-session-table tbody td {
+            padding: 15px 10px;
+            border-bottom: 1px solid rgba(125,152,163,0.2);
+            color: #49444c;
+            text-align: center;
+            overflow-wrap: break-word;
+        }
+        .patient-session-table th:not(:last-child),
+        .patient-session-table td:not(:last-child) {
+            border-right: 1px solid rgba(125,152,163,0.31);
+        }
+        .patient-session-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .patient-session-table tbody tr:nth-child(even) {
+            background: #fbfaf8;
+        }
+        .patient-session-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background-color 0.15s;
+        }
+        .patient-session-edit-btn:hover {
+            background-color: rgba(135,0,140,0.1);
+        }
+        .patient-view-footer {
+            padding: 16px 28px;
+            border-top: 1px solid rgba(125,152,163,0.31);
+            display: flex;
+            justify-content: flex-end;
+            flex-shrink: 0;
+        }
+        .patient-view-new-entry-btn {
+            display: inline-block;
+            background-color: #72bfba;
+            color: #fff !important;
+            text-decoration: none;
+            padding: 11px 24px;
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: background-color 0.2s;
+        }
+        .patient-view-new-entry-btn:hover {
+            background-color: #5aa9a4;
+        }
     </style>
 </head>
 <body>
@@ -766,6 +992,35 @@
         </div>
     </div>
 
+    <div class="patient-view-overlay" id="patientViewModal">
+        <div class="patient-view-panel">
+            <div class="patient-view-topbar">
+                <button class="patient-view-close" id="patientViewClose">&times;</button>
+            </div>
+            <div class="patient-view-header">
+                <div class="patient-view-badge">QS</div>
+                <div class="patient-view-header-info">
+                    <div class="patient-view-name" id="patientViewName">&mdash;</div>
+                    <div class="patient-view-meta">
+                        <div class="patient-view-meta-item">
+                            <strong>Contact</strong>
+                            <span id="patientViewPhone">&mdash;</span>
+                        </div>
+                        <div class="patient-view-meta-item">
+                            <strong>Patient ID</strong>
+                            <span id="patientViewId">&mdash;</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="patient-view-divider"></div>
+            <div class="patient-view-body" id="patientViewBody"></div>
+            <div class="patient-view-footer">
+                <a href="#" id="patientViewNewEntryBtn" class="patient-view-new-entry-btn" target="_blank" rel="noopener">+ New Entry</a>
+            </div>
+        </div>
+    </div>
+
     <script>
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
@@ -866,7 +1121,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -904,6 +1159,164 @@
         callbackNavBtn.addEventListener('click', () => {
             checkCallbackReminders(true);
         });
+
+        // --- Patient View popup (Laser Hair Removal) ---
+        const patientViewModal = document.getElementById('patientViewModal');
+        const patientViewClose = document.getElementById('patientViewClose');
+        const patientViewName = document.getElementById('patientViewName');
+        const patientViewPhone = document.getElementById('patientViewPhone');
+        const patientViewId = document.getElementById('patientViewId');
+        const patientViewBody = document.getElementById('patientViewBody');
+        const patientViewNewEntryBtn = document.getElementById('patientViewNewEntryBtn');
+
+        patientViewClose.addEventListener('click', () => {
+            patientViewModal.style.display = "none";
+        });
+        patientViewModal.addEventListener('click', (e) => {
+            if (e.target === patientViewModal) patientViewModal.style.display = "none";
+        });
+
+        // Clicking a patient's name in the Laser Hair Removal view opens this.
+        // Delegated on tableBody since rows are re-rendered on every sync.
+        tableBody.addEventListener('click', (e) => {
+            const link = e.target.closest('.patient-name-link');
+            if (link) openPatientView(link.getAttribute('data-id'));
+        });
+
+        async function openPatientView(docId) {
+            try {
+                const docRef = doc(db, "appointments", docId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) return;
+                const data = docSnap.data();
+
+                // Self-heal: legacy records may not have a patient_id yet.
+                // Assign one now so it persists for all future visits.
+                let patientId = data.patient_id;
+                if (!patientId) {
+                    patientId = generatePatientId();
+                    updateDoc(docRef, { patient_id: patientId })
+                        .catch(err => console.error("Patient ID assignment failed: ", err));
+                }
+
+                patientViewName.textContent = data.patient_name || '—';
+                patientViewPhone.textContent = data.patient_phone || '—';
+                patientViewId.textContent = patientId;
+                patientViewBody.innerHTML = `<div class="patient-view-placeholder">Loading session history…</div>`;
+
+                const newEntryParams = new URLSearchParams({
+                    patientId: patientId,
+                    name: data.patient_name || '',
+                    phone: data.patient_phone || ''
+                });
+                patientViewNewEntryBtn.href = `laser-session.html?${newEntryParams.toString()}`;
+
+                patientViewModal.style.display = "flex";
+
+                await renderPatientSessionHistory(patientId);
+            } catch (err) {
+                console.error("Failed to open patient view: ", err);
+            }
+        }
+
+        // Session history table: one row per past Laser Hair Removal visit for
+        // this patient. Queried by patient_id alone (a single equality filter,
+        // so it relies only on Firestore's automatic single-field index — no
+        // composite index needs to be created), then filtered/sorted client-side.
+        const SESSION_COLUMNS = [
+            { key: 'area',   label: 'Area',   width: 18 },
+            { key: 'carbon', label: 'Carbon', width: 7  },
+            { key: 'mode',   label: 'Mode',   width: 11 },
+            { key: 'hp',     label: 'HP',     width: 9  },
+            { key: 'eng',    label: 'Eng',    width: 9  },
+            { key: 'pass',   label: 'Pass',   width: 7  },
+            { key: 'repeat', label: 'Repeat', width: 8  },
+            { key: 'fees',   label: 'Fees',   width: 10 }
+        ];
+        const DATE_COLUMN_WIDTH = 15;
+        const EDIT_COLUMN_WIDTH = 6;
+
+        async function renderPatientSessionHistory(patientId) {
+            try {
+                const q = query(
+                    collection(db, "appointments"),
+                    where("patient_id", "==", patientId)
+                );
+                const snapshot = await getDocs(q);
+
+                const sessions = [];
+                snapshot.forEach(docSnap => {
+                    const d = docSnap.data();
+                    if (d.service_type !== 'Laser Hair Removal') return;
+
+                    // Skip the original booking record itself if no session details
+                    // have actually been logged for it yet — otherwise it shows up
+                    // as a blank row sharing the same date as any real entry logged
+                    // for that day, effectively "doubling" the date.
+                    const hasSessionData = SESSION_COLUMNS.some(col => d[col.key]);
+                    if (!hasSessionData) return;
+
+                    // Self-heal: session logs created before entry_kind existed would
+                    // still show up in the main daily dashboard table. Quietly tag
+                    // them now that we know this is a genuine logged session.
+                    if (d.entry_kind !== 'session_log') {
+                        updateDoc(doc(db, "appointments", docSnap.id), { entry_kind: 'session_log' })
+                            .catch(err => console.error("entry_kind backfill failed: ", err));
+                    }
+
+                    sessions.push({ id: docSnap.id, ...d });
+                });
+
+                sessions.sort((a, b) => {
+                    const aKey = `${a.appointment_date || ''}T${a.appointment_time || ''}`;
+                    const bKey = `${b.appointment_date || ''}T${b.appointment_time || ''}`;
+                    return bKey.localeCompare(aKey); // most recent first
+                });
+
+                if (sessions.length === 0) {
+                    patientViewBody.innerHTML = `<div class="patient-view-placeholder">No past laser sessions found for this patient.</div>`;
+                    return;
+                }
+
+                const headerHtml = SESSION_COLUMNS.map(col => `<th>${col.label}</th>`).join('');
+                const colgroupHtml = `<col style="width:${DATE_COLUMN_WIDTH}%">` +
+                    SESSION_COLUMNS.map(col => `<col style="width:${col.width}%">`).join('') +
+                    `<col style="width:${EDIT_COLUMN_WIDTH}%">`;
+                const rowsHtml = sessions.map(s => {
+                    const dateObj = s.appointment_date ? new Date(`${s.appointment_date}T00:00:00`) : null;
+                    const dateFormatted = dateObj && !isNaN(dateObj)
+                        ? dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : (s.appointment_date || '—');
+
+                    const cellsHtml = SESSION_COLUMNS.map(col => `<td>${s[col.key] || '—'}</td>`).join('');
+
+                    const editParams = new URLSearchParams({
+                        editId: s.id,
+                        patientId: patientId,
+                        name: s.patient_name || '',
+                        phone: s.patient_phone || ''
+                    });
+                    const editCell = `<td><a href="laser-session.html?${editParams.toString()}" target="_blank" class="patient-session-edit-btn" title="Edit Entry">✏️</a></td>`;
+
+                    return `<tr><td>${dateFormatted}</td>${cellsHtml}${editCell}</tr>`;
+                }).join('');
+
+                patientViewBody.innerHTML = `
+                    <div class="patient-session-table-wrap">
+                        <table class="patient-session-table">
+                            <colgroup>${colgroupHtml}</colgroup>
+                            <thead>
+                                <tr><th>Date</th>${headerHtml}<th>Edit</th></tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                console.error("Failed to load patient session history: ", err);
+                patientViewBody.innerHTML = `<div class="patient-view-placeholder">Couldn't load session history.</div>`;
+            }
+        }
 
         // The "call back" column stores a number of days, but every write also
         // computes and stores call_back_due_date (an ISO date string) so we can
@@ -1040,6 +1453,19 @@
             return `${y}-${m}-${d}`;
         }
 
+        // Generates a short, readable, persistent Patient ID (e.g. "PT-7K4RQ2"),
+        // matching the format used in create.html. Used here as a fallback so
+        // legacy appointment records still get an ID assigned the first time
+        // their patient view is opened.
+        function generatePatientId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return `PT-${code}`;
+        }
+
         function syncAppointments() {
             if (unsubscribe) unsubscribe();
 
@@ -1063,8 +1489,14 @@
 
                 const allDocs = [];
                 snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
-                
-                const filteredDocs = allDocs.filter(data => {
+
+                // Laser session logs (created via the "+ New Entry" / Edit flow in the
+                // Patient View) share this same collection/service_type/date, but they
+                // aren't real schedule bookings — they're supplementary session details
+                // attached to a patient. Keep them out of the daily schedule table.
+                const scheduledDocs = allDocs.filter(data => data.entry_kind !== 'session_log');
+
+                const filteredDocs = scheduledDocs.filter(data => {
                     if (!data.appointment_time) return false;
                     const hour = parseInt(data.appointment_time.split(':')[0], 10);
                     
@@ -1118,10 +1550,14 @@
 
                     const lockedInputAttr = isLocked ? 'disabled' : '';
 
+                    const nameCellHtml = activeService === 'Laser Hair Removal'
+                        ? `<button type="button" class="patient-name-link" data-id="${data.id}">${data.patient_name || ''}</button>`
+                        : `${data.patient_name || ''}`;
+
                     tr.innerHTML = `
                         ${doneCellHtml}
                         <td>${formatTo12Hour(data.appointment_time)}</td>
-                        <td>${data.patient_name || ''}</td>
+                        <td>${nameCellHtml}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td>${data.age || '--'}</td>
                         <td>${data.patient_address || '--'}</td>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Laser Session | Advanced Skin Clinic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #49444c;
+            background-color: #fcfaf9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .dashboard-container {
+            width: 100%;
+            max-width: 100%;
+            min-height: 100vh;
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 30px;
+            flex-shrink: 0;
+            border-bottom: 3px solid #87008c;
+        }
+        .navbar .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #3a3a3a;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #3a3a3a;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .nav-links a:hover {
+            color: #87008c;
+        }
+        .nav-links .appointment-btn {
+            background-color: #72bfba;
+            color: #fff;
+            padding: 9px 20px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        .nav-links .appointment-btn:hover {
+            background-color: #5aa9a4;
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 26px;
+            height: 19px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: #3a3a3a;
+            border-radius: 2px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+        .form-content-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 50px 20px;
+            background: #fdfaf8;
+        }
+        .mockup-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 650px;
+            padding: 45px 50px;
+            border-radius: 4px;
+            box-shadow: -12px 12px 57px 10px rgba(143,158,170,0.14);
+            position: relative;
+        }
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+        .qs-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: 0.5px;
+            box-shadow: 0 5px 16px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        .card-title {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 1.8rem;
+            color: #49444c;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .card-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #7a7a7a;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 600px) {
+            .qs-badge {
+                width: 60px;
+                height: 60px;
+                font-size: 18px;
+            }
+        }
+
+        /* Read-only patient identity block */
+        .patient-id-block {
+            background-color: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 4px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .patient-id-item {
+            font-size: 13px;
+            color: #7a7a7a;
+        }
+        .patient-id-item strong {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #cc9955;
+            margin-bottom: 3px;
+        }
+        .patient-id-item span {
+            font-size: 15px;
+            font-weight: 600;
+            color: #49444c;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            width: 140px;
+            font-size: 15px;
+            color: #49444c;
+            font-weight: 600;
+        }
+        .form-field-wrapper {
+            flex-grow: 1;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .input-box {
+            width: 100%;
+            background-color: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            padding: 10px 14px;
+            font-size: 15px;
+            font-family: "Open Sans", sans-serif;
+            outline: none;
+            color: #49444c;
+            height: 43px;
+        }
+        .input-box:focus {
+            border-color: #72bfba;
+        }
+        .submit-btn-row {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 28px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            transition: background-color 0.2s;
+        }
+        .btn-cancel {
+            background-color: #f0ece5;
+            color: #7a7a7a;
+        }
+        .btn-cancel:hover {
+            background-color: #e5e0d7;
+        }
+        .btn-submit {
+            background-color: #72bfba;
+            color: #fff;
+        }
+        .btn-submit:hover {
+            background-color: #5aa9a4;
+        }
+        .btn-submit:disabled {
+            background-color: #b7d9d6;
+            cursor: not-allowed;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid rgba(125,152,163,0.31) !important;
+        }
+        .missing-patient-notice {
+            text-align: center;
+            color: #b5504a;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: none;
+        }
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 30px 10px 10px;
+        }
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            line-height: 64px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: #4caf82;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .success-title {
+            font-family: "Quando", serif;
+            font-size: 20px;
+            color: #49444c;
+            margin-bottom: 8px;
+        }
+        .success-subtext {
+            font-size: 14px;
+            color: #7a7a7a;
+            margin-bottom: 26px;
+        }
+        @media (max-width: 700px) {
+            .navbar {
+                flex-wrap: wrap;
+                padding: 16px 20px;
+                position: relative;
+            }
+            .navbar .logo { font-size: 17px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+                gap: 0;
+                margin-top: 14px;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 12px 4px;
+                border-top: 1px solid rgba(125,152,163,0.25);
+                text-align: center;
+                font-size: 15px;
+            }
+            .nav-links .appointment-btn {
+                margin-top: 10px;
+                text-align: center;
+            }
+        }
+        @media (max-width: 600px) {
+            .form-content-area { padding: 30px 14px; }
+            .mockup-card { padding: 30px 20px; }
+            .card-title { font-size: 1.5rem; }
+            .patient-id-block { flex-direction: column; gap: 14px; }
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+            .form-label { width: auto; }
+            .form-field-wrapper {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                width: 100%;
+            }
+            .submit-btn-row {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="navbar">
+            <div class="logo">Advanced Skin Clinic</div>
+            <button class="hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="admin.html">Dashboard</a>
+                <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
+            </div>
+        </div>
+
+        <div class="form-content-area">
+            <div class="mockup-card">
+                <div class="card-header">
+                    <div class="qs-badge">QS</div>
+                    <div>
+                        <div class="card-title" id="cardTitle">Log Q-Switch Session</div>
+                    </div>
+                </div>
+
+                <div class="missing-patient-notice" id="missingPatientNotice">
+                    No patient was specified. Please open this page from a patient's Q-Switch view.
+                </div>
+
+                <div class="patient-id-block" id="patientIdBlock">
+                    <div class="patient-id-item">
+                        <strong>Name</strong>
+                        <span id="patientBlockName">&mdash;</span>
+                    </div>
+                    <div class="patient-id-item">
+                        <strong>Contact Number</strong>
+                        <span id="patientBlockPhone">&mdash;</span>
+                    </div>
+                    <div class="patient-id-item">
+                        <strong>Patient ID</strong>
+                        <span id="patientBlockId">&mdash;</span>
+                    </div>
+                </div>
+
+                <form id="sessionForm">
+                    <div class="form-row">
+                        <label for="sessionDate" class="form-label">Date</label>
+                        <div class="form-field-wrapper">
+                            <input type="date" id="sessionDate" class="input-box" required>
+                        </div>
+                    </div>
+
+                    <hr style="margin-bottom: 20px;">
+
+                    <div class="form-row">
+                        <label for="area" class="form-label">Area</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="area" class="input-box">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="carbon" class="form-label">Carbon</label>
+                        <div class="form-field-wrapper">
+                            <select id="carbon" class="input-box">
+                                <option value="">-- Select --</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="mode" class="form-label">Mode</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="mode" class="input-box">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="hp" class="form-label">HP</label>
+                        <div class="form-field-wrapper">
+                            <input type="text" id="hp" class="input-box">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="eng" class="form-label">Eng</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="eng" class="input-box" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="pass" class="form-label">Pass</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="pass" class="input-box" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="repeat" class="form-label">Repeat</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="repeat" class="input-box" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="fees" class="form-label">Fees</label>
+                        <div class="form-field-wrapper">
+                            <input type="number" id="fees" class="input-box" min="0">
+                        </div>
+                    </div>
+
+                    <div class="submit-btn-row">
+                        <button type="button" class="btn btn-cancel" onclick="window.close();">Cancel</button>
+                        <button type="submit" id="submitBtn" class="btn btn-submit">Log Session</button>
+                    </div>
+                </form>
+
+                <div class="success-state" id="successState">
+                    <div class="success-icon">✓</div>
+                    <div class="success-title" id="successTitle">Session logged successfully!</div>
+                    <div class="success-subtext">You can close this tab now.</div>
+                    <button type="button" class="btn btn-submit" onclick="window.close();">Close Tab</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        navToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            navToggle.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', isOpen);
+        });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, getDocFromServer, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
+            authDomain: "appointment-booking-1f0d0.firebaseapp.com",
+            projectId: "appointment-booking-1f0d0",
+            storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
+            messagingSenderId: "572909099522",
+            appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Formats a Date object as a YYYY-MM-DD string using its LOCAL calendar date
+        // (avoids the UTC-conversion off-by-one bug that Date#toISOString() has).
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('editId');
+        let patientId = urlParams.get('patientId');
+        let patientName = urlParams.get('name') || '';
+        let patientPhone = urlParams.get('phone') || '';
+        let originalAppointmentTime = null;
+
+        const sessionForm = document.getElementById('sessionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const sessionDateInput = document.getElementById('sessionDate');
+        const cardTitle = document.getElementById('cardTitle');
+        const cardSubtitle = document.getElementById('cardSubtitle');
+
+        sessionDateInput.value = toLocalDateStr(new Date());
+        sessionDateInput.addEventListener('click', () => {
+            if (typeof sessionDateInput.showPicker === 'function') {
+                try { sessionDateInput.showPicker(); } catch (err) { /* ignore */ }
+            }
+        });
+
+        // Null-safe setters: log a clear warning instead of crashing if an
+        // expected element/ID isn't found (e.g. local HTML has diverged from
+        // this script), so the rest of the form still populates correctly.
+        function safeSetValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) { el.value = value; }
+            else { console.warn(`[laser-session] Element #${id} not found — skipping.`); }
+        }
+        function safeSetText(id, value) {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = value; }
+            else { console.warn(`[laser-session] Element #${id} not found — skipping.`); }
+        }
+
+        async function init() {
+            if (editId) {
+                console.log("[laser-session] Editing document ID:", editId);
+                if (cardTitle) cardTitle.textContent = "Edit Laser Session";
+                if (cardSubtitle) cardSubtitle.textContent = "Update the details recorded for this visit";
+                if (submitBtn) submitBtn.textContent = "Update Session";
+                if (!cardTitle || !cardSubtitle) {
+                    console.warn("[laser-session] cardTitle/cardSubtitle elements not found in the DOM — your local HTML may have diverged from this script. This won't block loading the entry's data below.");
+                }
+
+                try {
+                    const docSnap = await getDocFromServer(doc(db, "appointments", editId));
+                    console.log("[laser-session] docSnap.exists():", docSnap.exists());
+
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        console.log("[laser-session] Fetched document data:", data);
+
+                        patientId = data.patient_id || patientId;
+                        patientName = data.patient_name || patientName;
+                        patientPhone = data.patient_phone || patientPhone;
+                        originalAppointmentTime = data.appointment_time || null;
+
+                        if (data.appointment_date) sessionDateInput.value = data.appointment_date;
+                        safeSetValue('area', data.area || '');
+                        safeSetValue('carbon', data.carbon || '');
+                        safeSetValue('mode', data.mode || '');
+                        safeSetValue('hp', data.hp || '');
+                        safeSetValue('eng', data.eng || '');
+                        safeSetValue('pass', data.pass || '');
+                        safeSetValue('repeat', data.repeat || '');
+                        safeSetValue('fees', data.fees || '');
+
+                        const gotAnySessionData = ['area', 'carbon', 'mode', 'hp', 'eng', 'pass', 'repeat', 'fees']
+                            .some(key => data[key]);
+                        if (!gotAnySessionData) {
+                            console.warn("[laser-session] Document was found but has no session fields set. Editing ID:", editId, "Full data:", data);
+                        }
+                    } else {
+                        console.warn("[laser-session] No document found in Firestore for editId:", editId);
+                        alert("This entry could not be found (ID: " + editId + "). It may have been deleted, or the link may be broken.");
+                    }
+                } catch (err) {
+                    console.error("[laser-session] Failed to load session for editing: ", err);
+                    alert("Couldn't load this entry for editing. Check the browser console for details.");
+                }
+            }
+
+            if (!patientId) {
+                const notice = document.getElementById('missingPatientNotice');
+                const block = document.getElementById('patientIdBlock');
+                if (notice) notice.style.display = "block";
+                if (block) block.style.display = "none";
+                if (sessionForm) sessionForm.style.display = "none";
+            } else {
+                safeSetText('patientBlockName', patientName || '—');
+                safeSetText('patientBlockPhone', patientPhone || '—');
+                safeSetText('patientBlockId', patientId);
+            }
+        }
+
+        init();
+
+        sessionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!patientId) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = editId ? "Updating..." : "Saving...";
+
+            const now = new Date();
+            const appointmentTime = editId
+                ? (originalAppointmentTime || `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`)
+                : `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const eng = document.getElementById('eng').value;
+            const pass = document.getElementById('pass').value;
+            const repeatDays = document.getElementById('repeat').value;
+            const fees = document.getElementById('fees').value;
+
+            const sessionPayload = {
+                service_type: "Laser Hair Removal",
+                entry_kind: "session_log",
+                patient_id: patientId,
+                patient_name: patientName,
+                patient_phone: patientPhone,
+                appointment_date: sessionDateInput.value,
+                appointment_time: appointmentTime,
+                area: document.getElementById('area').value.trim(),
+                carbon: document.getElementById('carbon').value.trim(),
+                mode: document.getElementById('mode').value.trim(),
+                hp: document.getElementById('hp').value.trim(),
+                eng: eng ? Number(eng) : "",
+                pass: pass ? Number(pass) : "",
+                repeat: repeatDays ? Number(repeatDays) : "",
+                fees: fees ? Number(fees) : "",
+                status: "Visited"
+            };
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, "appointments", editId), sessionPayload);
+                } else {
+                    await addDoc(collection(db, "appointments"), {
+                        ...sessionPayload,
+                        payment: "",
+                        payment_type: "",
+                        reference: "",
+                        diagnosis: "",
+                        follow_up: "",
+                        call_back: "",
+                        createdAt: new Date()
+                    });
+                }
+
+                document.getElementById('successTitle').textContent = editId
+                    ? "Session updated successfully!"
+                    : "Session logged successfully!";
+                sessionForm.style.display = "none";
+                document.getElementById('successState').style.display = "block";
+                window.close();
+            } catch (err) {
+                console.error("Failed to save session: ", err);
+                alert("Failed to save session. Please try again.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = editId ? "Update Session" : "Log Session";
+            }
+        });
+    </script>
+</body>
+</html>
