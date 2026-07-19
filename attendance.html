@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Clock-In | Attendance System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #7a7a7a;
+            background-color: #fcfaf9;
+            background-image: linear-gradient(60deg, #fff6f4 0%, #ffe4e2 100%);
+            min-height: 100vh;
+        }
+
+        /* ---------- Header ---------- */
+        .site-header {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 35px;
+            border-bottom: 3px solid #87008c;
+        }
+        .site-header .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: #3a3a3a;
+            text-decoration: none;
+        }
+
+        /* ---------- Page content ---------- */
+        .form-content-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+        }
+        .mockup-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 550px;
+            padding: 48px 55px;
+            border-radius: 4px;
+            box-shadow: -12px 12px 57px 10px rgba(143,158,170,0.14);
+            text-align: center;
+        }
+        .card-eyebrow {
+            text-align: center;
+            font-family: "Open Sans", sans-serif;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #cc9955;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #49444c;
+        }
+
+        /* ---------- Selection Buttons System ---------- */
+        .employee-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .emp-btn {
+            flex: 1;
+            padding: 16px 14px;
+            font-size: 16px;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            border: 1px solid rgba(125,152,163,0.31);
+            background-color: #f5f2ea;
+            color: #49444c;
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .emp-btn:hover {
+            border-color: #72bfba;
+        }
+        .emp-btn.selected {
+            background-color: #72bfba;
+            border-color: #72bfba;
+            color: #ffffff;
+        }
+
+        /* ---------- Submit Button Row ---------- */
+        .submit-btn-row {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px 34px;
+            font-size: 1rem;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: not-allowed;
+            border: none;
+            border-radius: 3px;
+            background-color: #b8c7cc;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+        .btn-submit.active {
+            background-color: #87008c;
+            cursor: pointer;
+        }
+        .btn-submit.active:hover {
+            background-color: #630066;
+        }
+
+        /* ---------- Success State ---------- */
+        .hidden { 
+            display: none !important; 
+        }
+        .success-icon {
+            color: #72bfba;
+            font-size: 80px;
+            margin-bottom: 15px;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .success-time {
+            font-size: 1.1rem;
+            color: #7a7a7a;
+            margin-top: 10px;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ---------- Mobile Adaptations ---------- */
+        @media (max-width: 600px) {
+            html, body {
+                height: 100dvh;
+                overflow: hidden;
+                overscroll-behavior: none;
+            }
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+            .site-header {
+                flex-shrink: 0;
+                padding: 1.6vh 4vw;
+            }
+            .site-header .logo { font-size: 4.6vw; }
+            .form-content-area {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+                padding: 1.6vh 4vw;
+                display: flex;
+                align-items: stretch;
+                justify-content: center;
+            }
+            .mockup-card {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 2.4vh 6vw;
+                box-shadow: none;
+            }
+            h2 {
+                flex-shrink: 0;
+                font-size: clamp(22px, 3.6vh, 28px);
+                line-height: 1.15;
+                margin-bottom: clamp(20px, 3vh, 35px);
+            }
+            .employee-options {
+                flex-direction: column;
+                gap: clamp(10px, 2vh, 18px);
+                margin-bottom: clamp(15px, 2.5vh, 25px);
+            }
+            .emp-btn {
+                padding: clamp(14px, 2vh, 18px) 12px;
+                font-size: clamp(15px, 2.2vh, 17px);
+            }
+            .submit-btn-row {
+                margin-top: clamp(10px, 2vh, 20px);
+            }
+            .btn-submit {
+                padding: clamp(12px, 2vh, 16px) 20px;
+                font-size: clamp(14px, 2vh, 16px);
+            }
+            .success-icon {
+                font-size: clamp(70px, 12vh, 95px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="#" class="logo">Attendance Tracking</a>
+    </header>
+
+    <div class="form-content-area">
+        <!-- SCREEN 1: Name Choice & Enter -->
+        <div class="mockup-card" id="formCard">
+            <div class="card-eyebrow">Staff Portal</div>
+            <h2>Clock In Today</h2>
+            
+            <div class="employee-options">
+                <!-- Replace with your exact employee names -->
+                <button type="button" class="emp-btn" onclick="selectEmployee('Fiza')">Fiza</button>
+                <button type="button" class="emp-btn" onclick="selectEmployee('Nisha')">Nisha</button>
+            </div>
+
+            <div class="submit-btn-row">
+                <button type="button" id="submitBtn" class="btn-submit" disabled onclick="submitClockIn()">Enter</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: Ticking Green Success Mark -->
+        <div class="mockup-card hidden" id="successCard">
+            <div class="success-icon">✓</div>
+            <h2 id="successUser">Clocked In!</h2>
+            <div class="card-eyebrow">Timestamp Recorded</div>
+            <p class="success-time" id="successTime"></p>
+        </div>
+    </div>
+
+    <script>
+        let targetEmployee = null;
+
+        function selectEmployee(name) {
+            targetEmployee = name;
+            
+            // Manage UI highlights for selections
+            document.querySelectorAll('.emp-btn').forEach(btn => {
+                if (btn.innerText === name) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+
+            // Turn on the enter confirmation action trigger
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.removeAttribute('disabled');
+            submitBtn.classList.add('active');
+        }
+
+        async function submitClockIn() {
+            if (!targetEmployee) return;
+
+            const timeData = new Date();
+            const localizedTime = timeData.toLocaleString(); 
+
+            // Prep text strings inside completion modules
+            document.getElementById('successUser').innerText = `${targetEmployee} Verified`;
+            document.getElementById('successTime').innerText = localizedTime;
+
+            // Transition components instantly out of view frame
+            document.getElementById('formCard').classList.add('hidden');
+            document.getElementById('successCard').classList.remove('hidden');
+
+            // Set up connection endpoint string
+            const backendEndpoint = 'https://script.google.com/macros/s/AKfycbyX0ixDgjbKrEqdyZ9ZiMJ2JmnYiuegOerE-t8_ELwBwFbke_t5smoX9C_mOoVWWtch/exec';
+
+            try {
+                await fetch(backendEndpoint, {
+                    method: 'POST',
+                    mode: 'no-cors', // Helps circumvent CORS errors on simple sheet engines
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee: targetEmployee,
+                        time: localizedTime
+                    })
+                });
+                console.log("Transmission Successful.");
+            } catch (err) {
+                console.error("Transmission Error Status: ", err);
+            }
+        }
+    </script>
+</body>
+</html>
