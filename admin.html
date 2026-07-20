@@ -476,23 +476,63 @@
             letter-spacing: 0.5px;
             color: #7a7a7a;
             background-color: #fdfaf8;
+            position: relative;
+            cursor: grab;
+            user-select: none;
+        }
+        .appointments-table th:active {
+            cursor: grabbing;
+        }
+        .appointments-table th.dragging {
+            opacity: 0.4;
+            background: #ece7dd;
+        }
+        .col-resize-handle {
+            position: absolute;
+            top: 0;
+            right: -3px;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            z-index: 5;
+            touch-action: none;
+        }
+        .col-resize-handle::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 2px;
+            width: 2px;
+            height: 100%;
+            background: transparent;
+        }
+        .col-resize-handle:hover::after,
+        .col-resize-handle.resizing::after {
+            background: #87008c;
+        }
+        .appointments-table.col-resizing {
+            cursor: col-resize;
+        }
+        .appointments-table.col-resizing th,
+        .appointments-table.col-resizing td {
+            user-select: none;
         }
         
-        .col-done { width: 4%; text-align: center; }
-        .col-time { width: 6%; }
-        .col-name { width: 13%; }
-        .col-phone { width: 11%; }
-        .col-qsid { width: 8%; text-align: center; }
-        .col-lhrid { width: 8%; text-align: center; }
-        .col-age { width: 4%; }
-        .col-address { width: 8%; } 
-        .col-payment { width: 8%; }
-        .col-type { width: 8%; }
-        .col-ref { width: 10%; }
-        .col-diagnosis { width: 12%; }
-        .col-follow { width: 8%; }
-        .col-actions { width: 4%; text-align: center; }
-        .col-callback { width: 8%; }
+        .col-done { width: 60px; text-align: center; }
+        .col-time { width: 90px; }
+        .col-name { width: 170px; }
+        .col-phone { width: 140px; }
+        .col-qsid { width: 100px; text-align: center; }
+        .col-lhrid { width: 100px; text-align: center; }
+        .col-age { width: 60px; }
+        .col-address { width: 130px; } 
+        .col-payment { width: 110px; }
+        .col-type { width: 110px; }
+        .col-ref { width: 120px; }
+        .col-diagnosis { width: 140px; }
+        .col-follow { width: 100px; }
+        .col-actions { width: 80px; text-align: center; }
+        .col-callback { width: 100px; }
 
         .completed-row {
             background-color: #e2f3ec !important;
@@ -558,8 +598,6 @@
             z-index: 2;
         }
         .totals-row td {
-            position: sticky;
-            bottom: 0;
             background-color: #f5f2ea;
             border-top: 2px solid #72bfba;
             font-family: "Open Sans", sans-serif;
@@ -1026,7 +1064,7 @@
             justify-content: center;
             gap: 24px;
             flex-wrap: wrap;
-            row-gap: 6px;
+ row-gap: 6px;
         }
         .patient-view-meta-item {
             font-size: 13px;
@@ -1368,41 +1406,28 @@
         <div class="table-wrapper">
             <table class="appointments-table">
                 <thead>
-                    <tr>
-                        <th class="col-done" style="text-align: center;">Done</th>
-                        <th class="col-time">Time</th>
-                        <th class="col-name">Name</th>
-                        <th class="col-phone">Contact Number</th> 
-                        <th class="col-qsid" id="thQsId" style="display:none; text-align:center;">QS ID</th>
-                        <th class="col-lhrid" id="thLhrId" style="display:none; text-align:center;">LHR ID</th>
-                        <th class="col-age">Age</th>
-                        <th class="col-address">Address</th> 
-                        <th class="col-payment">Payment</th>
-                        <th class="col-type">Type</th>
-                        <th class="col-ref">Reference</th>
-                        <th class="col-diagnosis" id="thDiagnosis">Diagnosis</th>
-                        <th class="col-follow">Follow Up</th> 
-                        <th class="col-actions" style="text-align: center;">Edit</th>
-                        <th class="col-callback" id="thCallback">Call Back</th>
+                    <tr id="tableHeaderRow">
+                        <th class="col-done" data-col="col-done" style="text-align: center;">Done</th>
+                        <th class="col-time" data-col="col-time">Time</th>
+                        <th class="col-name" data-col="col-name">Name</th>
+                        <th class="col-phone" data-col="col-phone">Contact Number</th> 
+                        <th class="col-qsid" data-col="col-qsid" id="thQsId" style="display:none; text-align:center;">QS ID</th>
+                        <th class="col-lhrid" data-col="col-lhrid" id="thLhrId" style="display:none; text-align:center;">LHR ID</th>
+                        <th class="col-age" data-col="col-age">Age</th>
+                        <th class="col-address" data-col="col-address">Address</th> 
+                        <th class="col-payment" data-col="col-payment">Payment</th>
+                        <th class="col-type" data-col="col-type">Type</th>
+                        <th class="col-ref" data-col="col-ref">Reference</th>
+                        <th class="col-diagnosis" data-col="col-diagnosis" id="thDiagnosis">Diagnosis</th>
+                        <th class="col-follow" data-col="col-follow">Follow Up</th> 
+                        <th class="col-actions" data-col="col-actions" style="text-align: center;">Edit</th>
+                        <th class="col-callback" data-col="col-callback" id="thCallback">Call Back</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                 </tbody>
                 <tfoot id="tableFooter" style="display: none;">
-                    <tr class="totals-row">
-                        <!-- Adjusted colspan to 8 to account for shifted Laser structural ID columns -->
-                        <td colspan="8" class="totals-label">
-                            Totals for the day
-                            <label class="totals-reveal" id="totalsRevealWrap" style="display: none;">
-                                <input type="checkbox" id="totalsRevealCheckbox">
-                            </label>
-                        </td>
-                        <td id="totalEarned" class="totals-value">₹0</td>
-                        <td colspan="2" id="totalBreakdown" class="totals-value">
-                            <span id="totalCashText">Cash ₹0</span><span class="breakdown-divider">|</span><span id="totalOnlineText">Online ₹0</span>
-                        </td>
-                        <td colspan="4"></td>
-                    </tr>
+                    <!-- Footer structure is completely rebuilt dynamically on load/render -->
                 </tfoot>
             </table>
             <div id="noDataMessage" class="no-data" style="display: none;">No appointments scheduled for this selection.</div>
@@ -1636,13 +1661,154 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Global variables to hold settings state
+        let currentCalculatedTotals = { earned: 0, cash: 0, online: 0 };
+        const ORDER_STORAGE_KEY = 'appointmentsTableColOrder';
+        const WIDTH_STORAGE_KEY = 'appointmentsTableColWidths';
+
+        // ---- Resizable and Reorderable Table Columns Implementation ----
+        (function setupFlexibleTableColumns() {
+            const table = document.querySelector('.appointments-table');
+            if (!table) return;
+            const headerRow = document.getElementById('tableHeaderRow');
+            if (!headerRow) return;
+            const MIN_WIDTH = 50;
+
+            function getSavedOrder() {
+                try {
+                    return JSON.parse(localStorage.getItem(ORDER_STORAGE_KEY)) || null;
+                } catch (e) { return null; }
+            }
+
+            function saveOrder() {
+                const currentOrder = Array.from(headerRow.querySelectorAll('th')).map(th => th.getAttribute('data-col'));
+                localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(currentOrder));
+            }
+
+            function getSavedWidths() {
+                try {
+                    return JSON.parse(localStorage.getItem(WIDTH_STORAGE_KEY)) || {};
+                } catch (e) { return {}; }
+            }
+
+            function saveWidths() {
+                const widths = getSavedWidths();
+                headerRow.querySelectorAll('th').forEach(th => {
+                    const key = th.getAttribute('data-col');
+                    if (key) widths[key] = Math.round(th.getBoundingClientRect().width);
+                });
+                localStorage.setItem(WIDTH_STORAGE_KEY, JSON.stringify(widths));
+            }
+
+            // Apply ordering first
+            const savedOrder = getSavedOrder();
+            if (savedOrder) {
+                const thMap = new Map();
+                headerRow.querySelectorAll('th').forEach(th => thMap.set(th.getAttribute('data-col'), th));
+                savedOrder.forEach(colKey => {
+                    if (thMap.has(colKey)) {
+                        headerRow.appendChild(thMap.get(colKey));
+                    }
+                });
+            }
+
+            // Apply widths next
+            const savedWidths = getSavedWidths();
+            headerRow.querySelectorAll('th').forEach(th => {
+                const key = th.getAttribute('data-col');
+                if (key && savedWidths[key]) {
+                    th.style.width = savedWidths[key] + 'px';
+                }
+            });
+
+            // Set up resize handles
+            function addHandles() {
+                headerRow.querySelectorAll('th').forEach(th => {
+                    if (th.querySelector('.col-resize-handle')) return;
+                    const handle = document.createElement('div');
+                    handle.className = 'col-resize-handle';
+                    th.appendChild(handle);
+
+                    let startX = 0, startWidth = 0;
+
+                    function onPointerMove(e) {
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const delta = clientX - startX;
+                        th.style.width = Math.max(MIN_WIDTH, Math.round(startWidth + delta)) + 'px';
+                    }
+
+                    function onPointerUp() {
+                        handle.classList.remove('resizing');
+                        table.classList.remove('col-resizing');
+                        document.removeEventListener('mousemove', onPointerMove);
+                        document.removeEventListener('mouseup', onPointerUp);
+                        document.removeEventListener('touchmove', onPointerMove);
+                        document.removeEventListener('touchend', onPointerUp);
+                        saveWidths();
+                    }
+
+                    handle.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation(); // Avoid triggering column drag
+                        startX = e.clientX;
+                        startWidth = th.getBoundingClientRect().width;
+                        handle.classList.add('resizing');
+                        table.classList.add('col-resizing');
+                        document.addEventListener('mousemove', onPointerMove);
+                        document.addEventListener('mouseup', onPointerUp);
+                    });
+                });
+            }
+
+            addHandles();
+
+            // Set up drag-and-drop column reordering
+            headerRow.querySelectorAll('th').forEach(th => {
+                th.draggable = true;
+
+                th.addEventListener('dragstart', function(e) {
+                    const colKey = th.getAttribute('data-col');
+                    // Exclude special handling or actions if needed
+                    if (colKey === 'col-actions' || colKey === 'col-done') {
+                        // Optional constraint: restrict moving system crucial fields
+                    }
+                    e.dataTransfer.setData('text/plain', colKey);
+                    th.classList.add('dragging');
+                });
+
+                th.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    const draggingTh = headerRow.querySelector('.dragging');
+                    if (!draggingTh || draggingTh === th) return;
+                    
+                    const rect = th.getBoundingClientRect();
+                    const midpoint = rect.left + rect.width / 2;
+                    if (e.clientX < midpoint) {
+                        headerRow.insertBefore(draggingTh, th);
+                    } else {
+                        headerRow.insertBefore(draggingTh, th.nextSibling);
+                    }
+                });
+
+                th.addEventListener('dragend', function() {
+                    th.classList.remove('dragging');
+                    saveOrder();
+                    if (window.syncAppointments) window.syncAppointments(); 
+                });
+            });
+
+            const headerObserver = new MutationObserver(() => {
+                addHandles();
+            });
+            headerRow.querySelectorAll('th').forEach(th => {
+                headerObserver.observe(th, { attributes: true, attributeFilter: ['style'] });
+            });
+        })();
+
         const dateFilter = document.getElementById('dateFilter');
         const tableBody = document.getElementById('tableBody');
         const noDataMessage = document.getElementById('noDataMessage');
         const tableFooter = document.getElementById('tableFooter');
-        const totalEarnedEl = document.getElementById('totalEarned');
-        const totalCashEl = document.getElementById('totalCashText');
-        const totalOnlineEl = document.getElementById('totalOnlineText');
 
         const walkinQueuePanel = document.getElementById('walkinQueuePanel');
         const walkinQueueToggle = document.getElementById('walkinQueueToggle');
@@ -1882,40 +2048,6 @@
             });
         }
 
-        function appendNewPendingRow(sessionType) {
-            const cfg = SESSION_TYPE_CONFIG[sessionType];
-            const tbody = document.getElementById(cfg.tbodyId);
-            if (!tbody) return;
-            const newRowKey = makeRowKey();
-            cfg.rowDocIds[newRowKey] = null;
-            tbody.insertAdjacentHTML('beforeend', buildSessionRowHtml(sessionType, newRowKey, {}));
-            const newRow = tbody.querySelector(`tr[data-row-key="${newRowKey}"]`);
-            if (newRow) wireSessionRowElements(newRow);
-            recalculateRowColors(sessionType);
-        }
-
-        async function assignSequentialId(sessionType, patientId) {
-            const idField = sessionType === 'qs' ? 'qs_id' : 'lhr_id';
-            const prefix = sessionType === 'qs' ? 'Q_' : 'L_';
-            const patientRef = doc(db, "patients", patientId);
-            const counterRef = doc(db, "counters", sessionType);
-
-            return await runTransaction(db, async (transaction) => {
-                const patientSnap = await transaction.get(patientRef);
-                const existing = patientSnap.exists() ? patientSnap.data()[idField] : null;
-                if (existing) return existing;
-
-                const counterSnap = await transaction.get(counterRef);
-                const nextVal = (counterSnap.exists() ? (counterSnap.data().value || 0) : 0) + 1;
-                const newId = `${prefix}${nextVal}`;
-
-                transaction.set(counterRef, { value: nextVal }, { merge: true });
-                transaction.set(patientRef, { [idField]: newId }, { merge: true });
-
-                return newId;
-            });
-        }
-
         async function createSessionRowDoc(sessionType, rowKey) {
             const cfg = SESSION_TYPE_CONFIG[sessionType];
             const blankFields = {};
@@ -1947,6 +2079,18 @@
             appendNewPendingRow(sessionType);
 
             return newDocRef.id;
+        }
+
+        function appendNewPendingRow(sessionType) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            const tbody = document.getElementById(cfg.tbodyId);
+            if (!tbody) return;
+            const newRowKey = makeRowKey();
+            cfg.rowDocIds[newRowKey] = null;
+            tbody.insertAdjacentHTML('beforeend', buildSessionRowHtml(sessionType, newRowKey, {}));
+            const newRow = tbody.querySelector(`tr[data-row-key="${newRowKey}"]`);
+            if (newRow) wireSessionRowElements(newRow);
+            recalculateRowColors(sessionType);
         }
 
         async function commitSessionRowField(sessionType, rowKey, field, value) {
@@ -2004,6 +2148,28 @@
             if (typeof dateInput.showPicker === 'function') {
                 try { dateInput.showPicker(); } catch (err) { /* ignore */ }
             }
+        }
+
+        async function assignSequentialId(sessionType, patientId) {
+            const idField = sessionType === 'qs' ? 'qs_id' : 'lhr_id';
+            const prefix = sessionType === 'qs' ? 'Q_' : 'L_';
+            const patientRef = doc(db, "patients", patientId);
+            const counterRef = doc(db, "counters", sessionType);
+
+            return await runTransaction(db, async (transaction) => {
+                const patientSnap = await transaction.get(patientRef);
+                const existing = patientSnap.exists() ? patientSnap.data()[idField] : null;
+                if (existing) return existing;
+
+                const counterSnap = await transaction.get(counterRef);
+                const nextVal = (counterSnap.exists() ? (counterSnap.data().value || 0) : 0) + 1;
+                const newId = `${prefix}${nextVal}`;
+
+                transaction.set(counterRef, { value: nextVal }, { merge: true });
+                transaction.set(patientRef, { [idField]: newId }, { merge: true });
+
+                return newId;
+            });
         }
 
         async function renderSessionHistory(sessionType, patientId, patientName, patientPhone) {
@@ -2215,10 +2381,6 @@
             return `PT-${code}`;
         }
 
-        // Renders the full token queue (walk-ins + online bookings) for the
-        // currently viewed service + date, ordered by token number.
-        // `dayDocs` should be every scheduled appointment for that service+date
-        // (not shift-restricted), so ahead-counts stay correct across the whole day.
         function renderWalkinQueue(dayDocs) {
             const queued = dayDocs
                 .filter(d => d.token_number)
@@ -2252,6 +2414,107 @@
             }).join('');
         }
 
+        // Rebuilds the sticky alignment of footer data mapping dynamically with visible/reordered header columns
+        function renderDynamicFooterRow() {
+            const headerRow = document.getElementById('tableHeaderRow');
+            if (!headerRow || !tableFooter) return;
+
+            const headers = Array.from(headerRow.querySelectorAll('th'));
+            
+            // Build visual representation map
+            let paymentIdx = -1;
+            let typeIdx = -1;
+            let visibleBeforePaymentCount = 0;
+
+            headers.forEach((th, index) => {
+                const isVisible = th.style.display !== 'none';
+                const colKey = th.getAttribute('data-col');
+
+                if (isVisible) {
+                    if (colKey === 'col-payment') paymentIdx = index;
+                    if (colKey === 'col-type') typeIdx = index;
+                    if (paymentIdx === -1) visibleBeforePaymentCount++;
+                }
+            });
+
+            const totalVisibleColumns = headers.filter(th => th.style.display !== 'none').length;
+
+            const selectedDate = dateFilter.value;
+            const todayStr = toLocalDateStr(new Date());
+            const isToday = selectedDate === todayStr;
+            const receptionBlockedDay = userRole === 'reception' && !isToday;
+
+            if (receptionBlockedDay || totalVisibleColumns === 0) {
+                tableFooter.style.display = "none";
+                return;
+            }
+
+            tableFooter.innerHTML = "";
+            const footerTr = document.createElement('tr');
+            footerTr.className = "totals-row";
+
+            const revealCheckbox = document.getElementById('totalsRevealCheckbox');
+            const amountsShown = (userRole !== 'reception' || (revealCheckbox && revealCheckbox.checked));
+
+            let earnedLabel = amountsShown ? `₹${currentCalculatedTotals.earned.toLocaleString('en-IN')}` : "••••";
+            let cashLabel = amountsShown ? `Cash ₹${currentCalculatedTotals.cash.toLocaleString('en-IN')}` : "Cash ••••";
+            let onlineLabel = amountsShown ? `Online ₹${currentCalculatedTotals.online.toLocaleString('en-IN')}` : "Online ••••";
+
+            const revealWrapHtml = userRole === 'reception' 
+                ? `<label class="totals-reveal" id="totalsRevealWrap">
+                       <input type="checkbox" id="totalsRevealCheckbox" ${revealCheckbox && revealCheckbox.checked ? 'checked' : ''}>
+                   </label>`
+                : '';
+
+            // Render columns prior to payment location
+            if (visibleBeforePaymentCount > 0) {
+                const labelTd = document.createElement('td');
+                labelTd.setAttribute('colspan', visibleBeforePaymentCount);
+                labelTd.className = "totals-label";
+                labelTd.innerHTML = `Totals for the day ${revealWrapHtml}`;
+                footerTr.appendChild(labelTd);
+            }
+
+            // Render matching structural cells depending on structural placement
+            if (paymentIdx !== -1) {
+                const earnedTd = document.createElement('td');
+                earnedTd.id = "totalEarned";
+                earnedTd.className = "totals-value";
+                earnedTd.textContent = earnedLabel;
+                footerTr.appendChild(earnedTd);
+            }
+
+            if (typeIdx !== -1) {
+                const breakdownTd = document.createElement('td');
+                breakdownTd.id = "totalBreakdown";
+                breakdownTd.className = "totals-value";
+                breakdownTd.innerHTML = `<span>${cashLabel}</span><span class="breakdown-divider">|</span><span>${onlineLabel}</span>`;
+                
+                // If Type sits adjacent next to Payment or scattered out, let it occupy custom alignment span
+                footerTr.appendChild(breakdownTd);
+            }
+
+            // Calculate remaining slots remaining on right
+            let accountedCells = visibleBeforePaymentCount + (paymentIdx !== -1 ? 1 : 0) + (typeIdx !== -1 ? 1 : 0);
+            let remainingSlots = totalVisibleColumns - accountedCells;
+
+            if (remainingSlots > 0) {
+                const tailTd = document.createElement('td');
+                tailTd.setAttribute('colspan', remainingSlots);
+                footerTr.appendChild(tailTd);
+            }
+
+            tableFooter.appendChild(footerTr);
+
+            // Re-bind listeners for toggle checkbox state if inside reception mode view context
+            const newCheckbox = document.getElementById('totalsRevealCheckbox');
+            if (newCheckbox) {
+                newCheckbox.addEventListener('change', () => {
+                    renderDynamicFooterRow();
+                });
+            }
+        }
+
         function syncAppointments() {
             if (unsubscribe) unsubscribe();
 
@@ -2262,12 +2525,6 @@
             document.getElementById('thCallback').style.display = isLaserView ? 'none' : '';
             document.getElementById('thQsId').style.display = isLaserView ? '' : 'none';
             document.getElementById('thLhrId').style.display = isLaserView ? '' : 'none';
-
-            // Dynamically evaluate footer label colspan based on current system view state[span_2](start_span)[span_2](end_span)
-            const totalsLabelTd = document.querySelector('.totals-row td.totals-label');
-            if (totalsLabelTd) {
-                totalsLabelTd.setAttribute('colspan', isLaserView ? '8' : '6');
-            }
 
             const q = query(
                 collection(db, "appointments"),
@@ -2296,12 +2553,7 @@
                 const filteredDocs = scheduledDocs.filter(data => {
                     if (!data.appointment_time) return false;
                     const hour = parseInt(data.appointment_time.split(':')[0], 10);
-                    
-                    if (activeShift === 'morning') {
-                        return hour < 15; 
-                    } else {
-                        return hour >= 15; 
-                    }
+                    return activeShift === 'morning' ? hour < 15 : hour >= 15;
                 });
 
                 if (filteredDocs.length === 0) {
@@ -2322,20 +2574,20 @@
                             const snap = await getDoc(doc(db, "patients", pid));
                             return [pid, snap.exists() ? snap.data() : {}];
                         } catch (err) {
-                            console.error("Failed to look up patient IDs for", pid, err);
+                            console.error("Failed to look up patient IDs", err);
                             return [pid, {}];
                         }
                     }));
                     patientIdMap = Object.fromEntries(lookups);
                 }
 
+                // Gather layout structure elements to populate table columns securely
+                const headers = Array.from(document.querySelectorAll('#tableHeaderRow th'));
+
                 filteredDocs.forEach(data => {
                     const tr = document.createElement('tr');
-                    
                     const isVisited = data.status === 'Visited';
-                    if (isVisited) {
-                        tr.classList.add('completed-row');
-                    }
+                    if (isVisited) tr.classList.add('completed-row');
 
                     const isOnline = data.payment_type === 'Online' ? 'selected' : '';
                     const isCash = data.payment_type === 'Cash' ? 'selected' : '';
@@ -2345,72 +2597,81 @@
                     const isLocked = isReception && isVisited;
                     if (isLocked) tr.classList.add('locked-row');
 
-                    const doneCellHtml = isReception
-                        ? `<td class="col-done-cell"></td>`
-                        : `<td style="text-align: center;">
-                            <input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>
-                        </td>`;
-
-                    const actionsHtml = isReception
-                        ? `<div class="action-container">
-                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment" ${isLocked ? 'disabled' : ''}>✏️</button>
-                            </div>`
-                        : `<div class="action-container">
-                                <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
-                                <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
-                            </div>`;
-
                     const lockedInputAttr = isLocked ? 'disabled' : '';
-
-                    const diagnosisCellStyle = isLaserView ? 'style="display:none;"' : '';
-                    const callbackCellStyle = isLaserView ? 'style="display:none;"' : '';
-                    const idCellStyle = isLaserView ? '' : 'style="display:none;"';
-
                     const patientIds = patientIdMap[data.patient_id] || {};
-                    const qsIdCellHtml = `<button type="button" class="id-box-btn id-box-qs" data-id="${data.id}" data-session-type="qs">${patientIds.qs_id || '—'}</button>`;
-                    const lhrIdCellHtml = `<button type="button" class="id-box-btn id-box-lhr" data-id="${data.id}" data-session-type="lhr">${patientIds.lhr_id || '—'}</button>`;
 
-                    const walkinBadgeHtml = data.token_number
-                        ? (data.entry_source === 'walkin'
-                            ? `<span class="badge-walkin">🎫 #${data.token_number}</span>`
-                            : `<span class="badge-online">🎫 #${data.token_number}</span>`)
-                        : '';
+                    // Build column element cells tracking current user setup structure order configuration dynamically
+                    headers.forEach(th => {
+                        const colType = th.getAttribute('data-col');
+                        if (th.style.display === 'none') return; 
 
-                    tr.innerHTML = `
-                        ${doneCellHtml}
-                        <td>${formatTo12Hour(data.appointment_time)}</td>
-                        <td>${data.patient_name || ''}${walkinBadgeHtml}</td>
-                        <td>${data.patient_phone || ''}</td>
-                        <td ${idCellStyle} style="text-align:center;">${qsIdCellHtml}</td>
-                        <td ${idCellStyle} style="text-align:center;">${lhrIdCellHtml}</td>
-                        <td>${data.age || '--'}</td>
-                        <td>${data.patient_address || '--'}</td>
-                        <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0" ${lockedInputAttr}>
-                        </td>
-                        <td>
-                            <select class="cell-select cell-select-action" data-id="${data.id}" data-field="payment_type" ${lockedInputAttr}>
-                                <option value="" ${isTypeUnset}>--</option>
-                                <option value="Online" ${isOnline}>Online</option>
-                                <option value="Cash" ${isCash}>Cash</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="..." ${lockedInputAttr}>
-                        </td>
-                        <td ${diagnosisCellStyle}>
-                            <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="..." ${lockedInputAttr}>
-                        </td>
-                        <td>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
-                        </td>
-                        <td>
-                            ${actionsHtml}
-                        </td>
-                        <td ${callbackCellStyle}>
-                            <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" data-appt-date="${data.appointment_date || ''}" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
-                        </td>
-                    `;
+                        let td = document.createElement('td');
+
+                        switch (colType) {
+                            case 'col-done':
+                                td.className = 'col-done-cell';
+                                td.style.textAlign = 'center';
+                                td.innerHTML = isReception ? '' : `<input type="checkbox" class="cell-checkbox status-checkbox" data-id="${data.id}" ${isVisited ? 'checked' : ''}>`;
+                                break;
+                            case 'col-time':
+                                td.textContent = formatTo12Hour(data.appointment_time);
+                                break;
+                            case 'col-name':
+                                const walkinBadgeHtml = data.token_number ? (data.entry_source === 'walkin' ? `<span class="badge-walkin">🎫 #${data.token_number}</span>` : `<span class="badge-online">🎫 #${data.token_number}</span>`) : '';
+                                td.innerHTML = `${data.patient_name || ''}${walkinBadgeHtml}`;
+                                break;
+                            case 'col-phone':
+                                td.textContent = data.patient_phone || '';
+                                break;
+                            case 'col-qsid':
+                                td.style.textAlign = 'center';
+                                td.innerHTML = `<button type="button" class="id-box-btn id-box-qs" data-id="${data.id}" data-session-type="qs">${patientIds.qs_id || '—'}</button>`;
+                                break;
+                            case 'col-lhrid':
+                                td.style.textAlign = 'center';
+                                td.innerHTML = `<button type="button" class="id-box-btn id-box-lhr" data-id="${data.id}" data-session-type="lhr">${patientIds.lhr_id || '—'}</button>`;
+                                break;
+                            case 'col-age':
+                                td.textContent = data.age || '--';
+                                break;
+                            case 'col-address':
+                                td.textContent = data.patient_address || '--';
+                                break;
+                            case 'col-payment':
+                                td.innerHTML = `<input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="payment" value="${data.payment || ''}" placeholder="Amount" min="0" ${lockedInputAttr}>`;
+                                break;
+                            case 'col-type':
+                                td.innerHTML = `<select class="cell-select cell-select-action" data-id="${data.id}" data-field="payment_type" ${lockedInputAttr}>
+                                                    <option value="" ${isTypeUnset}>--</option>
+                                                    <option value="Online" ${isOnline}>Online</option>
+                                                    <option value="Cash" ${isCash}>Cash</option>
+                                                </select>`;
+                                break;
+                            case 'col-ref':
+                                td.innerHTML = `<input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="..." ${lockedInputAttr}>`;
+                                break;
+                            case 'col-diagnosis':
+                                td.innerHTML = `<input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="..." ${lockedInputAttr}>`;
+                                break;
+                            case 'col-follow':
+                                td.innerHTML = `<input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="follow_up" value="${data.follow_up || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>`;
+                                break;
+                            case 'col-actions':
+                                td.style.textAlign = 'center';
+                                td.innerHTML = isReception
+                                    ? `<div class="action-container"><button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment" ${isLocked ? 'disabled' : ''}>✏️</button></div>`
+                                    : `<div class="action-container">
+                                            <button class="action-icon-btn edit-btn" data-id="${data.id}" title="Edit Appointment">✏️</button>
+                                            <button class="action-icon-btn delete-btn" data-id="${data.id}" title="Delete Appointment">🗑️</button>
+                                       </div>`;
+                                break;
+                            case 'col-callback':
+                                td.innerHTML = `<input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" data-appt-date="${data.appointment_date || ''}" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>`;
+                                break;
+                        }
+                        tr.appendChild(td);
+                    });
+
                     tableBody.appendChild(tr);
 
                     if (data.call_back && data.appointment_date) {
@@ -2426,48 +2687,22 @@
                     }
                 });
 
-                let totalEarned = 0;
-                let totalCash = 0;
-                let totalOnline = 0;
+                // Compute updated figures state
+                let totalEarned = 0, totalCash = 0, totalOnline = 0;
                 filteredDocs.forEach(data => {
                     const amount = Number(data.payment) || 0;
                     totalEarned += amount;
-                    if (data.payment_type === 'Cash') {
-                        totalCash += amount;
-                    } else if (data.payment_type === 'Online') {
-                        totalOnline += amount;
-                    }
+                    if (data.payment_type === 'Cash') totalCash += amount;
+                    else if (data.payment_type === 'Online') totalOnline += amount;
                 });
-                const revealWrap = document.getElementById('totalsRevealWrap');
-                const revealCheckbox = document.getElementById('totalsRevealCheckbox');
-                const todayStr = toLocalDateStr(new Date());
-                const isToday = dateFilter.value === todayStr;
-                const receptionBlockedDay = userRole === 'reception' && !isToday;
 
-                if (receptionBlockedDay) {
-                    tableFooter.style.display = "none";
-                } else if (userRole === 'reception') {
-                    revealWrap.style.display = "inline-flex";
-                    const amountsShown = revealCheckbox.checked;
-                    if (amountsShown) {
-                        totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
-                        totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
-                        totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
-                    } else {
-                        totalEarnedEl.textContent = "••••";
-                        totalCashEl.textContent = "Cash ••••";
-                        totalOnlineEl.textContent = "Online ••••";
-                    }
-                    revealCheckbox.onchange = syncAppointments;
-                    tableFooter.style.display = "";
-                } else {
-                    revealWrap.style.display = "none";
-                    totalEarnedEl.textContent = `₹${totalEarned.toLocaleString('en-IN')}`;
-                    totalCashEl.textContent = `Cash ₹${totalCash.toLocaleString('en-IN')}`;
-                    totalOnlineEl.textContent = `Online ₹${totalOnline.toLocaleString('en-IN')}`;
-                    tableFooter.style.display = "";
-                }
+                currentCalculatedTotals = { earned: totalEarned, cash: totalCash, online: totalOnline };
+                
+                // Mount tracking layout elements dynamically
+                tableFooter.style.display = "";
+                renderDynamicFooterRow();
 
+                // Re-bind actions listeners dynamically
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
@@ -2482,7 +2717,6 @@
                             try {
                                 const deletedDocInfo = currentDayDocsById[docId];
                                 await deleteDoc(doc(db, "appointments", docId));
-                                // Close the gap left in the token queue, if this record had one.
                                 if (deletedDocInfo && deletedDocInfo.service_type && deletedDocInfo.appointment_date) {
                                     await reassignDailyTokens(db, deletedDocInfo.service_type, deletedDocInfo.appointment_date);
                                 }
@@ -2498,21 +2732,10 @@
                         const docId = e.target.getAttribute('data-id');
                         const isChecked = e.target.checked;
                         const newStatus = isChecked ? 'Visited' : 'Booked';
-                        const row = e.target.closest('tr');
-
-                        if (isChecked) {
-                            row.classList.add('completed-row');
-                        } else {
-                            row.classList.remove('completed-row');
-                        }
-
                         try {
-                            const docRef = doc(db, "appointments", docId);
-                            await updateDoc(docRef, { status: newStatus });
+                            await updateDoc(doc(db, "appointments", docId), { status: newStatus });
                         } catch (err) {
                             console.error("Firestore status update failed: ", err);
-                            if (isChecked) row.classList.remove('completed-row');
-                            else row.classList.remove('completed-row');
                             e.target.checked = !isChecked;
                         }
                     });
@@ -2520,7 +2743,6 @@
 
                 document.querySelectorAll('.cell-action, .cell-select-action').forEach(element => {
                     const triggerEvent = element.tagName === 'SELECT' ? 'change' : 'blur';
-                    
                     element.addEventListener(triggerEvent, async (e) => {
                         const docId = e.target.getAttribute('data-id');
                         const fieldName = e.target.getAttribute('data-field');
@@ -2559,9 +2781,8 @@
         }
 
         function resetCounters() {
-            totalEarnedEl.textContent = "₹0";
-            totalCashEl.textContent = "Cash ₹0";
-            totalOnlineEl.textContent = "Online ₹0";
+            currentCalculatedTotals = { earned: 0, cash: 0, online: 0 };
+            renderDynamicFooterRow();
         }
 
         function switchService(service) {
@@ -2673,7 +2894,7 @@
                     where("service_type", "==", activeService)
                 );
                 const snap = await getDocs(q);
-                if (myToken !== searchRequestToken) return; // a newer search superseded this one
+                if (myToken !== searchRequestToken) return; 
 
                 const byPatient = {};
                 snap.forEach(docSnap => {
@@ -2738,7 +2959,6 @@
                 });
 
                 results.sort((a, b) => (a.patient_name || '').localeCompare(b.patient_name || ''));
-
                 renderSearchResults(results, isLaser);
             } catch (err) {
                 console.error("Patient search failed: ", err);
