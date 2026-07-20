@@ -250,6 +250,8 @@
         .col-time { width: 6%; }
         .col-name { width: 13%; }
         .col-phone { width: 11%; }
+        .col-qsid { width: 8%; text-align: center; }
+        .col-lhrid { width: 8%; text-align: center; }
         .col-age { width: 4%; }
         .col-address { width: 8%; } 
         .col-payment { width: 8%; }
@@ -709,6 +711,33 @@
             letter-spacing: 0.5px;
             box-shadow: 0 5px 16px rgba(0,0,0,0.3);
         }
+        .patient-view-badge.badge-purple {
+            background: #87008c;
+        }
+        .id-box-btn {
+            display: inline-block;
+            min-width: 54px;
+            padding: 5px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: "Open Sans", sans-serif;
+            letter-spacing: 0.3px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            text-align: center;
+            transition: opacity 0.15s;
+        }
+        .id-box-btn:hover {
+            opacity: 0.85;
+        }
+        .id-box-btn.id-box-qs {
+            background: #000;
+        }
+        .id-box-btn.id-box-lhr {
+            background: #87008c;
+        }
         @media (max-width: 900px) {
             .patient-view-panel {
                 width: 92vw;
@@ -842,9 +871,6 @@
         .patient-session-table tbody tr.session-row-white {
             background: #ffffff;
         }
-        /* The row where the color flips marks a breakpoint — a more
-           prominent divider against the row above it than the regular
-           1px row dividers elsewhere in the table. */
         .patient-session-table tbody tr.session-row-break td {
             border-top: 2px solid rgba(125,152,163,0.5);
         }
@@ -886,16 +912,9 @@
             border-bottom: 1px solid #72bfba;
             background-color: #f5f2ea;
         }
-        /* Hide the "dd/mm/yyyy" placeholder text while the date is empty and
-           unfocused, so blank rows look clean instead of cluttered. It
-           reappears while actively focused/typing, and of course once a
-           real date is set. */
         .session-date-input.date-empty:not(:focus) {
             color: transparent;
         }
-        /* Hide the browser's own calendar icon — our custom button (below)
-           is the single control for opening the picker, so there's only
-           ever one calendar icon visible per row instead of two. */
         .session-date-input::-webkit-calendar-picker-indicator {
             display: none;
             -webkit-appearance: none;
@@ -915,8 +934,6 @@
             transition: background-color 0.15s, opacity 0.15s;
             opacity: 0;
         }
-        /* Calendar button only appears on hover (or keyboard focus, for
-           accessibility) so it doesn't clutter the row the rest of the time. */
         .patient-session-table tbody tr:hover .session-date-btn,
         .session-date-btn:focus {
             opacity: 1;
@@ -993,22 +1010,25 @@
                         <th class="col-time">Time</th>
                         <th class="col-name">Name</th>
                         <th class="col-phone">Contact Number</th> 
+                        <th class="col-qsid" id="thQsId" style="display:none; text-align:center;">QS ID</th>
+                        <th class="col-lhrid" id="thLhrId" style="display:none; text-align:center;">LHR ID</th>
                         <th class="col-age">Age</th>
                         <th class="col-address">Address</th> 
                         <th class="col-payment">Payment</th>
                         <th class="col-type">Type</th>
                         <th class="col-ref">Reference</th>
-                        <th class="col-diagnosis">Diagnosis</th>
+                        <th class="col-diagnosis" id="thDiagnosis">Diagnosis</th>
                         <th class="col-follow">Follow Up</th> 
                         <th class="col-actions" style="text-align: center;">Edit</th>
-                        <th class="col-callback">Call Back</th> 
+                        <th class="col-callback" id="thCallback">Call Back</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                 </tbody>
                 <tfoot id="tableFooter" style="display: none;">
                     <tr class="totals-row">
-                        <td colspan="6" class="totals-label">
+                        <!-- Adjusted colspan to 8 to account for shifted Laser structural ID columns -->
+                        <td colspan="8" class="totals-label">
                             Totals for the day
                             <label class="totals-reveal" id="totalsRevealWrap" style="display: none;">
                                 <input type="checkbox" id="totalsRevealCheckbox">
@@ -1056,6 +1076,10 @@
                             <span id="patientViewId">&mdash;</span>
                         </div>
                     </div>
+                    <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center;">
+                        <input type="text" id="assignQsIdInput" placeholder="Assign QS ID" class="cell-input" style="max-width: 180px; text-align: center; border: 1px solid rgba(125,152,163,0.5); border-radius: 3px; background: #f5f2ea; padding: 4px 8px;">
+                        <button type="button" id="saveQsIdBtn" class="id-box-btn id-box-qs" style="min-width: 60px; font-size: 12px; padding: 4px 10px;">Save ID</button>
+                    </div>
                 </div>
             </div>
             <div class="patient-view-divider"></div>
@@ -1063,11 +1087,40 @@
         </div>
     </div>
 
+    <div class="patient-view-overlay" id="lhrViewModal">
+        <div class="patient-view-panel">
+            <div class="patient-view-topbar">
+                <button class="patient-view-close" id="lhrViewClose">&times;</button>
+            </div>
+            <div class="patient-view-header">
+                <div class="patient-view-badge badge-purple">LHR</div>
+                <div class="patient-view-header-info">
+                    <div class="patient-view-name" id="lhrViewName">&mdash;</div>
+                    <div class="patient-view-meta">
+                        <div class="patient-view-meta-item">
+                            <strong>Contact</strong>
+                            <span id="lhrViewPhone">&mdash;</span>
+                        </div>
+                        <div class="patient-view-meta-item">
+                            <strong>Patient ID</strong>
+                            <span id="lhrViewId">&mdash;</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center;">
+                        <input type="text" id="assignLhrIdInput" placeholder="Assign LHR ID" class="cell-input" style="max-width: 180px; text-align: center; border: 1px solid rgba(125,152,163,0.5); border-radius: 3px; background: #f5f2ea; padding: 4px 8px;">
+                        <button type="button" id="saveLhrIdBtn" class="id-box-btn id-box-lhr" style="min-width: 60px; font-size: 12px; padding: 4px 10px;">Save ID</button>
+                    </div>
+                </div>
+            </div>
+            <div class="patient-view-divider"></div>
+            <div class="patient-view-body" id="lhrViewBody"></div>
+        </div>
+    </div>
+
     <script>
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
-            doctor:    { username: 'bhavesh',    password: 'Bha@123' },
-            doctor:    {username: 'Bhavesh', password: 'Bha@123'}
+            doctor:    { username: 'bhavesh',    password: 'Bha@123' }
         };
 
         let userRole = null;
@@ -1113,8 +1166,6 @@
             if (role === 'reception') maybeShowCallbackReminders();
         }
 
-        // Shows the call back reminder popup once per reception login session.
-        // Waits for the Firebase module script below to finish loading if needed.
         function maybeShowCallbackReminders() {
             if (sessionStorage.getItem('callbackPopupShown')) return;
             sessionStorage.setItem('callbackPopupShown', '1');
@@ -1164,7 +1215,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -1186,7 +1237,11 @@
         const totalCashEl = document.getElementById('totalCashText');
         const totalOnlineEl = document.getElementById('totalOnlineText');
 
-        // --- Call Back Reminder popup ---
+        const assignQsIdInput = document.getElementById('assignQsIdInput');
+        const saveQsIdBtn = document.getElementById('saveQsIdBtn');
+        const assignLhrIdInput = document.getElementById('assignLhrIdInput');
+        const saveLhrIdBtn = document.getElementById('saveLhrIdBtn');
+
         const callbackModal = document.getElementById('callbackModal');
         const callbackModalBody = document.getElementById('callbackModalBody');
         const callbackModalClose = document.getElementById('callbackModalClose');
@@ -1203,37 +1258,102 @@
             checkCallbackReminders(true);
         });
 
-        // --- Patient View popup (Laser Hair Removal) ---
-        const patientViewModal = document.getElementById('patientViewModal');
-        const patientViewClose = document.getElementById('patientViewClose');
-        const patientViewName = document.getElementById('patientViewName');
-        const patientViewPhone = document.getElementById('patientViewPhone');
-        const patientViewId = document.getElementById('patientViewId');
-        const patientViewBody = document.getElementById('patientViewBody');
+        const SESSION_TYPE_CONFIG = {
+            qs: {
+                columns: [
+                    { key: 'area',   label: 'Area',   width: 18, type: 'text'   },
+                    { key: 'carbon', label: 'Carbon', width: 8,  type: 'select' },
+                    { key: 'mode',   label: 'Mode',   width: 12, type: 'text'   },
+                    { key: 'hp',     label: 'HP',     width: 10, type: 'text'   },
+                    { key: 'eng',    label: 'Eng',    width: 9,  type: 'number' },
+                    { key: 'pass',   label: 'Pass',   width: 8,  type: 'number' },
+                    { key: 'repeat', label: 'Repeat', width: 9,  type: 'number' },
+                    { key: 'fees',   label: 'Fees',   width: 11, type: 'number' }
+                ],
+                dateWidth: 15,
+                tbodyId: 'qsSessionTableBody',
+                modal: document.getElementById('patientViewModal'),
+                closeBtn: document.getElementById('patientViewClose'),
+                nameEl: document.getElementById('patientViewName'),
+                phoneEl: document.getElementById('patientViewPhone'),
+                idEl: document.getElementById('patientViewId'),
+                bodyEl: document.getElementById('patientViewBody'),
+                rowDocIds: {},
+                rowCreationPromises: {},
+                patientContext: null
+            },
+            lhr: {
+                columns: [
+                    { key: 'area',  label: 'Area',  width: 28, type: 'text'   },
+                    { key: 'hr',    label: 'HR',    width: 14, type: 'number' },
+                    { key: 'shr',   label: 'SHR',   width: 14, type: 'number' },
+                    { key: 'stack', label: 'Stack', width: 14, type: 'number' },
+                    { key: 'fee',   label: 'Fee',   width: 14, type: 'number' }
+                ],
+                dateWidth: 16,
+                tbodyId: 'lhrSessionTableBody',
+                modal: document.getElementById('lhrViewModal'),
+                closeBtn: document.getElementById('lhrViewClose'),
+                nameEl: document.getElementById('lhrViewName'),
+                phoneEl: document.getElementById('lhrViewPhone'),
+                idEl: document.getElementById('lhrViewId'),
+                bodyEl: document.getElementById('lhrViewBody'),
+                rowDocIds: {},
+                rowCreationPromises: {},
+                patientContext: null
+            }
+        };
 
-        patientViewClose.addEventListener('click', () => {
-            patientViewModal.style.display = "none";
-        });
-        patientViewModal.addEventListener('click', (e) => {
-            if (e.target === patientViewModal) patientViewModal.style.display = "none";
+        Object.entries(SESSION_TYPE_CONFIG).forEach(([sessionType, cfg]) => {
+            cfg.closeBtn.addEventListener('click', () => {
+                cfg.modal.style.display = "none";
+            });
+            cfg.modal.addEventListener('click', (e) => {
+                if (e.target === cfg.modal) cfg.modal.style.display = "none";
+            });
         });
 
-        // Clicking a patient's name in the Laser Hair Removal view opens this.
-        // Delegated on tableBody since rows are re-rendered on every sync.
         tableBody.addEventListener('click', (e) => {
-            const link = e.target.closest('.patient-name-link');
-            if (link) openPatientView(link.getAttribute('data-id'));
+            const idBtn = e.target.closest('.id-box-btn');
+            if (idBtn) { openPatientView(idBtn.dataset.sessionType, idBtn.dataset.id); }
         });
 
-        async function openPatientView(docId) {
+        async function saveCustomPatientId(sessionType) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            if (!cfg.patientContext || !cfg.patientContext.patientId) return;
+
+            const targetInput = sessionType === 'qs' ? assignQsIdInput : assignLhrIdInput;
+            const newIdValue = targetInput.value.trim();
+            if (!newIdValue) {
+                alert("Please enter a valid ID value.");
+                return;
+            }
+
+            const idField = sessionType === 'qs' ? 'qs_id' : 'lhr_id';
+            const patientId = cfg.patientContext.patientId;
+            const patientRef = doc(db, "patients", patientId);
+
+            try {
+                await setDoc(patientRef, { [idField]: newIdValue }, { merge: true });
+                alert(`${sessionType.toUpperCase()} ID updated successfully to: ${newIdValue}`);
+                if (window.syncAppointments) window.syncAppointments();
+            } catch (err) {
+                console.error("Failed custom structural ID tracking update:", err);
+                alert("An error occurred while saving the ID.");
+            }
+        }
+
+        saveQsIdBtn.addEventListener('click', () => saveCustomPatientId('qs'));
+        saveLhrIdBtn.addEventListener('click', () => saveCustomPatientId('lhr'));
+
+        async function openPatientView(sessionType, docId) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
             try {
                 const docRef = doc(db, "appointments", docId);
                 const docSnap = await getDoc(docRef);
                 if (!docSnap.exists()) return;
                 const data = docSnap.data();
 
-                // Self-heal: legacy records may not have a patient_id yet.
-                // Assign one now so it persists for all future visits.
                 let patientId = data.patient_id;
                 if (!patientId) {
                     patientId = generatePatientId();
@@ -1241,45 +1361,35 @@
                         .catch(err => console.error("Patient ID assignment failed: ", err));
                 }
 
-                patientViewName.textContent = data.patient_name || '—';
-                patientViewPhone.textContent = data.patient_phone || '—';
-                patientViewId.textContent = patientId;
-                patientViewBody.innerHTML = `<div class="patient-view-placeholder">Loading session history…</div>`;
+                cfg.nameEl.textContent = data.patient_name || '—';
+                cfg.phoneEl.textContent = data.patient_phone || '—';
+                cfg.idEl.textContent = patientId;
+                cfg.bodyEl.innerHTML = `<div class="patient-view-placeholder">Loading session history…</div>`;
 
-                patientViewModal.style.display = "flex";
+                try {
+                    const patientSnap = await getDoc(doc(db, "patients", patientId));
+                    if (patientSnap.exists()) {
+                        const pData = patientSnap.data();
+                        if (sessionType === 'qs') {
+                            assignQsIdInput.value = pData.qs_id || '';
+                        } else {
+                            assignLhrIdInput.value = pData.lhr_id || '';
+                        }
+                    } else {
+                        if (sessionType === 'qs') assignQsIdInput.value = '';
+                        else assignLhrIdInput.value = '';
+                    }
+                } catch(e) {
+                    console.log("Could not resolve patient details:", e);
+                }
 
-                await renderPatientSessionHistory(patientId, data.patient_name || '', data.patient_phone || '');
+                cfg.modal.style.display = "flex";
+
+                await renderSessionHistory(sessionType, patientId, data.patient_name || '', data.patient_phone || '');
             } catch (err) {
                 console.error("Failed to open patient view: ", err);
             }
         }
-
-        // Session history table: editable directly inline, one row per past
-        // Laser Hair Removal visit for this patient, plus one always-blank
-        // "pending" row at the end ready for the next entry. Queried by
-        // patient_id alone (a single equality filter, so it relies only on
-        // Firestore's automatic single-field index — no composite index
-        // needs to be created), then filtered/sorted client-side.
-        const SESSION_COLUMNS = [
-            { key: 'area',   label: 'Area',   width: 18, type: 'text'   },
-            { key: 'carbon', label: 'Carbon', width: 8,  type: 'select' },
-            { key: 'mode',   label: 'Mode',   width: 12, type: 'text'   },
-            { key: 'hp',     label: 'HP',     width: 10, type: 'text'   },
-            { key: 'eng',    label: 'Eng',    width: 9,  type: 'number' },
-            { key: 'pass',   label: 'Pass',   width: 8,  type: 'number' },
-            { key: 'repeat', label: 'Repeat', width: 9,  type: 'number' },
-            { key: 'fees',   label: 'Fees',   width: 11, type: 'number' }
-        ];
-        const DATE_COLUMN_WIDTH = 15;
-
-        // Per-popup-session state: maps a client-side row key to its Firestore
-        // doc ID (null until the row's first field is actually saved), plus
-        // an in-flight creation promise per row to prevent a race condition
-        // where quickly filling two fields on a brand-new row could create
-        // two separate documents instead of one.
-        let currentPatientContext = null;
-        let rowDocIds = {};
-        let rowCreationPromises = {};
 
         function nowTimeStr() {
             const now = new Date();
@@ -1290,20 +1400,13 @@
             return 'row-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         }
 
-        // Toggles a class that hides the "dd/mm/yyyy" placeholder look while
-        // a date input has no value (and isn't focused) — see CSS.
         function updateDateEmptyClass(input) {
             if (!input) return;
             input.classList.toggle('date-empty', !input.value);
         }
 
-        // Row striping isn't based on position (odd/even) — it's a running
-        // toggle that only flips on rows where a date has actually been
-        // entered. Rows without a date just inherit whatever the current
-        // color is. Recomputed top-to-bottom any time a date changes or a
-        // row is added, so it always reflects the latest state correctly.
-        function recalculateRowColors() {
-            const tbody = document.getElementById('sessionTableBody');
+        function recalculateRowColors(sessionType) {
+            const tbody = document.getElementById(SESSION_TYPE_CONFIG[sessionType].tbodyId);
             if (!tbody) return;
             let isBeige = false;
             Array.from(tbody.children).forEach((rowEl, index) => {
@@ -1312,30 +1415,28 @@
                 if (hasDate) isBeige = !isBeige;
                 rowEl.classList.toggle('session-row-beige', isBeige);
                 rowEl.classList.toggle('session-row-white', !isBeige);
-                // The row that triggers a color change is a visual breakpoint —
-                // give it a more prominent divider against the row above it.
-                // Skip the very first row since there's nothing above it.
                 rowEl.classList.toggle('session-row-break', hasDate && index > 0);
             });
         }
 
-        function buildSessionRowHtml(rowKey, data) {
+        function buildSessionRowHtml(sessionType, rowKey, data) {
+            const columns = SESSION_TYPE_CONFIG[sessionType].columns;
             const dateVal = data.appointment_date || '';
             const dateCell = `
                 <td>
                     <div class="session-date-wrap">
-                        <input type="date" class="session-date-input" data-row="${rowKey}" data-field="appointment_date" value="${dateVal}">
-                        <button type="button" class="session-date-btn" data-row="${rowKey}" title="Set today's date / open calendar">📅</button>
+                        <input type="date" class="session-date-input" data-row="${rowKey}" data-session-type="${sessionType}" data-field="appointment_date" value="${dateVal}">
+                        <button type="button" class="session-date-btn" data-row="${rowKey}" data-session-type="${sessionType}" title="Set today's date / open calendar">📅</button>
                     </div>
                 </td>
             `;
 
-            const fieldCells = SESSION_COLUMNS.map(col => {
+            const fieldCells = columns.map(col => {
                 const val = data[col.key] ?? '';
                 if (col.type === 'select') {
                     return `
                         <td>
-                            <select class="session-cell-input" data-row="${rowKey}" data-field="${col.key}">
+                            <select class="session-cell-input" data-row="${rowKey}" data-session-type="${sessionType}" data-field="${col.key}">
                                 <option value="" ${val === '' ? 'selected' : ''}>-- Select --</option>
                                 <option value="Yes" ${val === 'Yes' ? 'selected' : ''}>Yes</option>
                                 <option value="No" ${val === 'No' ? 'selected' : ''}>No</option>
@@ -1345,7 +1446,7 @@
                 }
                 const inputType = col.type === 'number' ? 'number' : 'text';
                 const minAttr = col.type === 'number' ? 'min="0"' : '';
-                return `<td><input type="${inputType}" class="session-cell-input" data-row="${rowKey}" data-field="${col.key}" value="${val}" ${minAttr}></td>`;
+                return `<td><input type="${inputType}" class="session-cell-input" data-row="${rowKey}" data-session-type="${sessionType}" data-field="${col.key}" value="${val}" ${minAttr}></td>`;
             }).join('');
 
             return `<tr data-row-key="${rowKey}">${dateCell}${fieldCells}</tr>`;
@@ -1365,48 +1466,82 @@
             });
         }
 
-        function appendNewPendingRow() {
-            const tbody = document.getElementById('sessionTableBody');
+        function appendNewPendingRow(sessionType) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            const tbody = document.getElementById(cfg.tbodyId);
             if (!tbody) return;
             const newRowKey = makeRowKey();
-            rowDocIds[newRowKey] = null;
-            tbody.insertAdjacentHTML('beforeend', buildSessionRowHtml(newRowKey, {}));
+            cfg.rowDocIds[newRowKey] = null;
+            tbody.insertAdjacentHTML('beforeend', buildSessionRowHtml(sessionType, newRowKey, {}));
             const newRow = tbody.querySelector(`tr[data-row-key="${newRowKey}"]`);
             if (newRow) wireSessionRowElements(newRow);
-            recalculateRowColors();
+            recalculateRowColors(sessionType);
         }
 
-        async function createSessionRowDoc(rowKey) {
+        async function assignSequentialId(sessionType, patientId) {
+            const idField = sessionType === 'qs' ? 'qs_id' : 'lhr_id';
+            const prefix = sessionType === 'qs' ? 'Q_' : 'L_';
+            const patientRef = doc(db, "patients", patientId);
+            const counterRef = doc(db, "counters", sessionType);
+
+            return await runTransaction(db, async (transaction) => {
+                const patientSnap = await transaction.get(patientRef);
+                const existing = patientSnap.exists() ? patientSnap.data()[idField] : null;
+                if (existing) return existing;
+
+                const counterSnap = await transaction.get(counterRef);
+                const nextVal = (counterSnap.exists() ? (counterSnap.data().value || 0) : 0) + 1;
+                const newId = `${prefix}${nextVal}`;
+
+                transaction.set(counterRef, { value: nextVal }, { merge: true });
+                transaction.set(patientRef, { [idField]: newId }, { merge: true });
+
+                return newId;
+            });
+        }
+
+        async function createSessionRowDoc(sessionType, rowKey) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            const blankFields = {};
+            cfg.columns.forEach(col => { blankFields[col.key] = ""; });
+
+            assignSequentialId(sessionType, cfg.patientContext.patientId)
+                .then(assignedId => {
+                    const targetInput = sessionType === 'qs' ? assignQsIdInput : assignLhrIdInput;
+                    if (!targetInput.value) targetInput.value = assignedId;
+                })
+                .catch(err => console.error(`Failed to assign ${sessionType} id: `, err));
+
             const payload = {
                 service_type: "Laser Hair Removal",
                 entry_kind: "session_log",
-                patient_id: currentPatientContext.patientId,
-                patient_name: currentPatientContext.patientName,
-                patient_phone: currentPatientContext.patientPhone,
+                session_type: sessionType,
+                patient_id: cfg.patientContext.patientId,
+                patient_name: cfg.patientContext.patientName,
+                patient_phone: cfg.patientContext.patientPhone,
                 appointment_date: "",
                 appointment_time: nowTimeStr(),
-                area: "", carbon: "", mode: "", hp: "", eng: "", pass: "", repeat: "", fees: "",
+                ...blankFields,
                 status: "Visited",
                 createdAt: new Date()
             };
             const newDocRef = await addDoc(collection(db, "appointments"), payload);
-            rowDocIds[rowKey] = newDocRef.id;
+            cfg.rowDocIds[rowKey] = newDocRef.id;
 
-            // This pending row just became a real entry — make sure a fresh
-            // blank row is always available below for the next one.
-            appendNewPendingRow();
+            appendNewPendingRow(sessionType);
 
             return newDocRef.id;
         }
 
-        async function commitSessionRowField(rowKey, field, value) {
-            let docId = rowDocIds[rowKey];
+        async function commitSessionRowField(sessionType, rowKey, field, value) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            let docId = cfg.rowDocIds[rowKey];
 
             if (!docId) {
-                if (!rowCreationPromises[rowKey]) {
-                    rowCreationPromises[rowKey] = createSessionRowDoc(rowKey);
+                if (!cfg.rowCreationPromises[rowKey]) {
+                    cfg.rowCreationPromises[rowKey] = createSessionRowDoc(sessionType, rowKey);
                 }
-                docId = await rowCreationPromises[rowKey];
+                docId = await cfg.rowCreationPromises[rowKey];
             }
 
             try {
@@ -1418,24 +1553,27 @@
 
         function handleSessionFieldCommit(e) {
             const el = e.target;
+            const sessionType = el.dataset.sessionType;
             const rowKey = el.dataset.row;
             const field = el.dataset.field;
             let value = el.value;
 
-            if (['eng', 'pass', 'repeat', 'fees'].includes(field) && value !== '') {
+            const numericFields = ['eng', 'pass', 'repeat', 'fees', 'hr', 'shr', 'stack', 'fee'];
+            if (numericFields.includes(field) && value !== '') {
                 value = Number(value);
             }
 
             if (field === 'appointment_date') {
                 updateDateEmptyClass(el);
-                recalculateRowColors();
+                recalculateRowColors(sessionType);
             }
 
-            commitSessionRowField(rowKey, field, value);
+            commitSessionRowField(sessionType, rowKey, field, value);
         }
 
         function handleDateButtonClick(e) {
             const btn = e.currentTarget;
+            const sessionType = btn.dataset.sessionType;
             const rowKey = btn.dataset.row;
             const row = btn.closest('tr');
             const dateInput = row ? row.querySelector('.session-date-input') : null;
@@ -1444,18 +1582,19 @@
             const todayStr = toLocalDateStr(new Date());
             dateInput.value = todayStr;
             updateDateEmptyClass(dateInput);
-            recalculateRowColors();
-            commitSessionRowField(rowKey, 'appointment_date', todayStr);
+            recalculateRowColors(sessionType);
+            commitSessionRowField(sessionType, rowKey, 'appointment_date', todayStr);
 
             if (typeof dateInput.showPicker === 'function') {
                 try { dateInput.showPicker(); } catch (err) { /* ignore */ }
             }
         }
 
-        async function renderPatientSessionHistory(patientId, patientName, patientPhone) {
-            currentPatientContext = { patientId, patientName, patientPhone };
-            rowDocIds = {};
-            rowCreationPromises = {};
+        async function renderSessionHistory(sessionType, patientId, patientName, patientPhone) {
+            const cfg = SESSION_TYPE_CONFIG[sessionType];
+            cfg.patientContext = { patientId, patientName, patientPhone };
+            cfg.rowDocIds = {};
+            cfg.rowCreationPromises = {};
 
             try {
                 const q = query(
@@ -1468,19 +1607,24 @@
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     if (d.service_type !== 'Laser Hair Removal') return;
+                    if (d.entry_kind !== 'session_log') {
+                        const hasAnySessionData = SESSION_TYPE_CONFIG.qs.columns.some(col => d[col.key])
+                            || SESSION_TYPE_CONFIG.lhr.columns.some(col => d[col.key]);
+                        if (!hasAnySessionData) return;
+                    }
 
-                    // Skip the original booking record itself if no session details
-                    // have actually been logged for it yet — this table is only for
-                    // genuine logged sessions, not the appointment slot booking.
-                    const hasSessionData = SESSION_COLUMNS.some(col => d[col.key]);
+                    const effectiveType = d.session_type || 'qs';
+                    if (effectiveType !== sessionType) return;
+
+                    const hasSessionData = cfg.columns.some(col => d[col.key]);
                     if (!hasSessionData) return;
 
-                    // Self-heal: session logs created before entry_kind existed would
-                    // still show up in the main daily dashboard table. Quietly tag
-                    // them now that we know this is a genuine logged session.
-                    if (d.entry_kind !== 'session_log') {
-                        updateDoc(doc(db, "appointments", docSnap.id), { entry_kind: 'session_log' })
-                            .catch(err => console.error("entry_kind backfill failed: ", err));
+                    const backfill = {};
+                    if (d.entry_kind !== 'session_log') backfill.entry_kind = 'session_log';
+                    if (!d.session_type) backfill.session_type = sessionType;
+                    if (Object.keys(backfill).length > 0) {
+                        updateDoc(doc(db, "appointments", docSnap.id), backfill)
+                            .catch(err => console.error("Session backfill failed: ", err));
                     }
 
                     sessions.push({ id: docSnap.id, ...d });
@@ -1489,44 +1633,40 @@
                 sessions.sort((a, b) => {
                     const aKey = `${a.appointment_date || ''}T${a.appointment_time || ''}`;
                     const bKey = `${b.appointment_date || ''}T${b.appointment_time || ''}`;
-                    return aKey.localeCompare(bKey); // oldest first, newest (and the blank row) at the bottom
+                    return aKey.localeCompare(bKey);
                 });
 
-                sessions.forEach(s => { rowDocIds[s.id] = s.id; });
+                sessions.forEach(s => { cfg.rowDocIds[s.id] = s.id; });
 
-                const headerHtml = SESSION_COLUMNS.map(col => `<th>${col.label}</th>`).join('');
-                const colgroupHtml = `<col style="width:${DATE_COLUMN_WIDTH}%">` +
-                    SESSION_COLUMNS.map(col => `<col style="width:${col.width}%">`).join('');
+                const headerHtml = cfg.columns.map(col => `<th>${col.label}</th>`).join('');
+                const colgroupHtml = `<col style="width:${cfg.dateWidth}%">` +
+                    cfg.columns.map(col => `<col style="width:${col.width}%">`).join('');
 
-                const existingRowsHtml = sessions.map(s => buildSessionRowHtml(s.id, s)).join('');
+                const existingRowsHtml = sessions.map(s => buildSessionRowHtml(sessionType, s.id, s)).join('');
                 const pendingRowKey = makeRowKey();
-                rowDocIds[pendingRowKey] = null;
-                const pendingRowHtml = buildSessionRowHtml(pendingRowKey, {});
+                cfg.rowDocIds[pendingRowKey] = null;
+                const pendingRowHtml = buildSessionRowHtml(sessionType, pendingRowKey, {});
 
-                patientViewBody.innerHTML = `
+                cfg.bodyEl.innerHTML = `
                     <div class="patient-session-table-wrap">
                         <table class="patient-session-table">
                             <colgroup>${colgroupHtml}</colgroup>
                             <thead>
                                 <tr><th>Date</th>${headerHtml}</tr>
                             </thead>
-                            <tbody id="sessionTableBody">${existingRowsHtml}${pendingRowHtml}</tbody>
+                            <tbody id="${cfg.tbodyId}">${existingRowsHtml}${pendingRowHtml}</tbody>
                         </table>
                     </div>
                 `;
 
-                document.querySelectorAll('#sessionTableBody tr').forEach(rowEl => wireSessionRowElements(rowEl));
-                recalculateRowColors();
+                document.querySelectorAll(`#${cfg.tbodyId} tr`).forEach(rowEl => wireSessionRowElements(rowEl));
+                recalculateRowColors(sessionType);
             } catch (err) {
                 console.error("Failed to load patient session history: ", err);
-                patientViewBody.innerHTML = `<div class="patient-view-placeholder">Couldn't load session history.</div>`;
+                cfg.bodyEl.innerHTML = `<div class="patient-view-placeholder">Couldn't load session history.</div>`;
             }
         }
 
-        // The "call back" column stores a number of days, but every write also
-        // computes and stores call_back_due_date (an ISO date string) so we can
-        // query directly for "who's due today" instead of scanning every
-        // appointment in the collection.
         async function checkCallbackReminders(forceShow = false) {
             try {
                 const todayStr = toLocalDateStr(new Date());
@@ -1596,10 +1736,8 @@
                     entryEl.classList.toggle('callback-done', isDone);
 
                     if (isDone) {
-                        // Send it to the bottom of the list.
                         callbackModalBody.appendChild(rowEl);
                     } else {
-                        // Pull it back up, just above the first "called" card (if any).
                         const firstDoneRow = callbackModalBody.querySelector('.callback-entry.callback-done')?.closest('.callback-row');
                         if (firstDoneRow && firstDoneRow !== rowEl) {
                             callbackModalBody.insertBefore(rowEl, firstDoneRow);
@@ -1628,7 +1766,6 @@
 
         let unsubscribe = null;
 
-        // Helper function to format HH:MM strings into 12-hour format with AM/PM
         function formatTo12Hour(timeStr) {
             if (!timeStr) return '';
             const parts = timeStr.split(':');
@@ -1641,16 +1778,11 @@
             
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
-            hours = hours ? hours : 12; // The hour '0' should be '12'
+            hours = hours ? hours : 12;
             
             return `${hours}:${minutes} ${ampm}`;
         }
 
-        // Formats a Date object as a YYYY-MM-DD string using its LOCAL calendar date.
-        // We deliberately avoid Date#toISOString() for this, since toISOString()
-        // converts to UTC first — for timezones ahead of UTC (like India, UTC+5:30),
-        // a local midnight timestamp rolls back into the previous UTC day, which
-        // silently shaves a day off any date-only calculation (e.g. call back due dates).
         function toLocalDateStr(date) {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1658,10 +1790,6 @@
             return `${y}-${m}-${d}`;
         }
 
-        // Generates a short, readable, persistent Patient ID (e.g. "PT-7K4RQ2"),
-        // matching the format used in create.html. Used here as a fallback so
-        // legacy appointment records still get an ID assigned the first time
-        // their patient view is opened.
         function generatePatientId() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
@@ -1675,6 +1803,18 @@
             if (unsubscribe) unsubscribe();
 
             const selectedDate = dateFilter.value;
+            const isLaserView = activeService === 'Laser Hair Removal';
+
+            document.getElementById('thDiagnosis').style.display = isLaserView ? 'none' : '';
+            document.getElementById('thCallback').style.display = isLaserView ? 'none' : '';
+            document.getElementById('thQsId').style.display = isLaserView ? '' : 'none';
+            document.getElementById('thLhrId').style.display = isLaserView ? '' : 'none';
+
+            // Dynamically evaluate footer label colspan based on current system view state[span_2](start_span)[span_2](end_span)
+            const totalsLabelTd = document.querySelector('.totals-row td.totals-label');
+            if (totalsLabelTd) {
+                totalsLabelTd.setAttribute('colspan', isLaserView ? '8' : '6');
+            }
 
             const q = query(
                 collection(db, "appointments"),
@@ -1682,7 +1822,7 @@
                 where("appointment_date", "==", selectedDate)
             );
 
-            unsubscribe = onSnapshot(q, (snapshot) => {
+            unsubscribe = onSnapshot(q, async (snapshot) => {
                 tableBody.innerHTML = "";
                 
                 if (snapshot.empty) {
@@ -1695,10 +1835,6 @@
                 const allDocs = [];
                 snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
 
-                // Laser session logs (created via the "+ New Entry" / Edit flow in the
-                // Patient View) share this same collection/service_type/date, but they
-                // aren't real schedule bookings — they're supplementary session details
-                // attached to a patient. Keep them out of the daily schedule table.
                 const scheduledDocs = allDocs.filter(data => data.entry_kind !== 'session_log');
 
                 const filteredDocs = scheduledDocs.filter(data => {
@@ -1721,6 +1857,21 @@
                 
                 noDataMessage.style.display = "none";
                 filteredDocs.sort((a, b) => a.appointment_time.localeCompare(b.appointment_time));
+
+                let patientIdMap = {};
+                if (isLaserView) {
+                    const uniquePatientIds = [...new Set(filteredDocs.map(d => d.patient_id).filter(Boolean))];
+                    const lookups = await Promise.all(uniquePatientIds.map(async pid => {
+                        try {
+                            const snap = await getDoc(doc(db, "patients", pid));
+                            return [pid, snap.exists() ? snap.data() : {}];
+                        } catch (err) {
+                            console.error("Failed to look up patient IDs for", pid, err);
+                            return [pid, {}];
+                        }
+                    }));
+                    patientIdMap = Object.fromEntries(lookups);
+                }
 
                 filteredDocs.forEach(data => {
                     const tr = document.createElement('tr');
@@ -1755,15 +1906,21 @@
 
                     const lockedInputAttr = isLocked ? 'disabled' : '';
 
-                    const nameCellHtml = activeService === 'Laser Hair Removal'
-                        ? `<button type="button" class="patient-name-link" data-id="${data.id}">${data.patient_name || ''}</button>`
-                        : `${data.patient_name || ''}`;
+                    const diagnosisCellStyle = isLaserView ? 'style="display:none;"' : '';
+                    const callbackCellStyle = isLaserView ? 'style="display:none;"' : '';
+                    const idCellStyle = isLaserView ? '' : 'style="display:none;"';
+
+                    const patientIds = patientIdMap[data.patient_id] || {};
+                    const qsIdCellHtml = `<button type="button" class="id-box-btn id-box-qs" data-id="${data.id}" data-session-type="qs">${patientIds.qs_id || '—'}</button>`;
+                    const lhrIdCellHtml = `<button type="button" class="id-box-btn id-box-lhr" data-id="${data.id}" data-session-type="lhr">${patientIds.lhr_id || '—'}</button>`;
 
                     tr.innerHTML = `
                         ${doneCellHtml}
                         <td>${formatTo12Hour(data.appointment_time)}</td>
-                        <td>${nameCellHtml}</td>
+                        <td>${data.patient_name || ''}</td>
                         <td>${data.patient_phone || ''}</td>
+                        <td ${idCellStyle} style="text-align:center;">${qsIdCellHtml}</td>
+                        <td ${idCellStyle} style="text-align:center;">${lhrIdCellHtml}</td>
                         <td>${data.age || '--'}</td>
                         <td>${data.patient_address || '--'}</td>
                         <td>
@@ -1779,7 +1936,7 @@
                         <td>
                             <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="reference" value="${data.reference || ''}" placeholder="..." ${lockedInputAttr}>
                         </td>
-                        <td>
+                        <td ${diagnosisCellStyle}>
                             <input type="text" class="cell-input cell-action" data-id="${data.id}" data-field="diagnosis" value="${data.diagnosis || ''}" placeholder="..." ${lockedInputAttr}>
                         </td>
                         <td>
@@ -1788,16 +1945,12 @@
                         <td>
                             ${actionsHtml}
                         </td>
-                        <td>
+                        <td ${callbackCellStyle}>
                             <input type="number" class="cell-input cell-action" data-id="${data.id}" data-field="call_back" data-appt-date="${data.appointment_date || ''}" value="${data.call_back || ''}" placeholder="e.g. 7" min="0" ${lockedInputAttr}>
                         </td>
                     `;
                     tableBody.appendChild(tr);
 
-                    // Self-healing backfill: if this record has a call_back set but its
-                    // call_back_due_date field is missing or stale, quietly recompute and
-                    // save it so future reminder lookups can query the field directly
-                    // instead of scanning the whole collection.
                     if (data.call_back && data.appointment_date) {
                         const baseDate = new Date(`${data.appointment_date}T00:00:00`);
                         if (!isNaN(baseDate)) {
@@ -1866,7 +2019,6 @@
                         if (confirm("Are you sure you want to permanently delete this appointment record?")) {
                             try {
                                 await deleteDoc(doc(db, "appointments", docId));
-                                console.log(`Successfully deleted record document: ${docId}`);
                             } catch (err) {
                                 console.error("Firestore document erasure operation failed: ", err);
                             }
@@ -1890,7 +2042,6 @@
                         try {
                             const docRef = doc(db, "appointments", docId);
                             await updateDoc(docRef, { status: newStatus });
-                            console.log(`Updated database status to: ${newStatus}`);
                         } catch (err) {
                             console.error("Firestore status update failed: ", err);
                             if (isChecked) row.classList.remove('completed-row');
@@ -1932,7 +2083,6 @@
                                 }
                             }
                             await updateDoc(docRef, updatePayload);
-                            console.log(`Updated database field [${fieldName}] to:`, newValue);
                         } catch (err) {
                             console.error("Firestore update failed: ", err);
                         }

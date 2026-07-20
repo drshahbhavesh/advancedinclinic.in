@@ -367,7 +367,6 @@
                         </div>
                     </div>
 
-                    <!-- Repositioned: Address Row now lives directly below Payment and above Reference -->
                     <div class="form-row">
                         <label for="address" class="form-label">Address</label>
                         <div class="form-field-wrapper">
@@ -433,10 +432,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const editId = urlParams.get('editId');
 
-        // Formats a Date object as a YYYY-MM-DD string using its LOCAL calendar date.
-        // We avoid Date#toISOString() here since it converts to UTC first — for
-        // timezones ahead of UTC (like India, UTC+5:30), a local midnight timestamp
-        // can roll back into the previous UTC day, defaulting this field to yesterday.
         function toLocalDateStr(date) {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -452,7 +447,6 @@
             const interval = service === 'Laser Hair Removal' ? 60 : 10;
             const slots = [];
             
-            // Shift 1: 10:00 AM to 2:00 PM (14:00)
             for (let hour = 10; hour <= 14; hour++) {
                 for (let min = 0; min < 60; min += interval) {
                     if (hour === 14 && min > 0) continue;
@@ -460,7 +454,6 @@
                 }
             }
             
-            // Shift 2: 4:00 PM (16:00) to 9:00 PM (21:00)
             for (let hour = 16; hour <= 21; hour++) {
                 for (let min = 0; min < 60; min += interval) {
                     if (hour === 21 && min > 0) continue;
@@ -564,9 +557,6 @@
         let currentPatientId = null;
         let currentPatientDocIds = [];
 
-        // Generates a short, readable, persistent Patient ID (e.g. "PT-7K4RQ2").
-        // Uses a character set that excludes visually ambiguous characters
-        // (0/O, 1/I) so it's easy for staff to read aloud or write down.
         function generatePatientId() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let code = '';
@@ -582,7 +572,7 @@
             currentPatientDocIds = entry.docIds || [];
 
             nameInput.value = record.patient_name || "";
-            addressInput.value = record.patient_address || ""; // Auto-populates historical address
+            addressInput.value = record.patient_address || ""; 
             document.getElementById('age').value = record.age || "";
             document.getElementById('gender').value = record.gender || "";
             
@@ -642,9 +632,6 @@
                             if (!nameKey) return;
 
                             if (!matchedPatientsMap[nameKey]) {
-                                // Query is ordered by createdAt desc, so the first doc
-                                // seen per name is the most recent visit — use it as
-                                // the canonical record for auto-filling the form.
                                 matchedPatientsMap[nameKey] = { data, docIds: [docSnap.id] };
                             } else {
                                 matchedPatientsMap[nameKey].docIds.push(docSnap.id);
@@ -680,7 +667,7 @@
                         clearAutoPopulatedFields();
                     }
                 } catch (err) {
-                    console.error("Historical dynamic data group check fetch failed: ", err);
+                    console.error("Historical dynamic data check failed: ", err);
                 }
             } else {
                 clearAutoPopulatedFields();
@@ -748,9 +735,6 @@
             const paymentType = document.getElementById('paymentType').value;
             const reference = document.getElementById('reference').value;
 
-            // Reuse the patient's existing persistent ID if the phone lookup found
-            // one; otherwise this is effectively a new patient identity, so mint one.
-            const isNewPatientId = !currentPatientId;
             const finalPatientId = currentPatientId || generatePatientId();
 
             const appointmentPayload = {
@@ -783,10 +767,7 @@
                         createdAt: new Date()
                     });
 
-                    // If we just minted a new ID but this phone+name had older
-                    // appointment records without one (legacy data), quietly
-                    // backfill those so the whole history shares one Patient ID.
-                    if (isNewPatientId && currentPatientDocIds.length > 0) {
+                    if (!currentPatientId && currentPatientDocIds.length > 0) {
                         await Promise.all(
                             currentPatientDocIds.map(id =>
                                 updateDoc(doc(db, "appointments", id), { patient_id: finalPatientId })
