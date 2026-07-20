@@ -385,6 +385,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { reassignDailyTokens, countStillWaitingAhead } from "./token-utils.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -491,13 +492,14 @@
 
             try {
                 // Combined single transaction layout schema payload tracking
-                await addDoc(collection(db, "appointments"), {
+                const newDocRef = await addDoc(collection(db, "appointments"), {
                     service_type: service,
                     patient_name: name,
                     patient_phone: phone,
                     appointment_date: date,
                     appointment_time: time,
                     status: "Booked",
+                    entry_source: "online",
                     createdAt: new Date(),
                     whatsapp_sent: false, // picked up by the WhatsApp notifier bot
                     // Placeholders prevent structural query errors on admin data loops
@@ -507,11 +509,19 @@
                     follow_up: ""
                 });
 
+                // Join the shared, time-ordered token queue for this service+date.
+                const dayEntries = await reassignDailyTokens(db, service, date);
+                const mine = dayEntries.find(e => e.id === newDocRef.id);
+                const tokenNumber = mine ? mine.token_number : '';
+                const aheadCount = mine ? countStillWaitingAhead(dayEntries, newDocRef.id) : '';
+
                 const params = new URLSearchParams({
                     name: name,
                     date: date,
                     time: time,
-                    service: service
+                    service: service,
+                    token: tokenNumber,
+                    ahead: aheadCount
                 });
                 window.location.href = `confirmation.html?${params.toString()}`;
             } catch (error) {

@@ -213,6 +213,238 @@
         .create-btn:hover {
             background-color: #5aa9a4;
         }
+
+        /* ---------- Patient Search ---------- */
+        .search-trigger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 36px;
+            height: 36px;
+            background: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            cursor: pointer;
+            color: #49444c;
+            transition: background-color 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+        .search-trigger-btn:hover {
+            background-color: #72bfba;
+            color: #fff;
+        }
+        .search-trigger-btn svg {
+            width: 17px;
+            height: 17px;
+            display: block;
+        }
+        .search-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(58, 58, 58, 0.55);
+            z-index: 2200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .search-modal {
+            background: #fff;
+            width: 100%;
+            max-width: 580px;
+            max-height: 84vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .search-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 28px;
+            border-bottom: 3px solid #87008c;
+            flex-shrink: 0;
+        }
+        .search-modal-header h2 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 22px;
+            color: #3a3a3a;
+        }
+        .search-modal-close {
+            background: none;
+            border: none;
+            font-size: 26px;
+            line-height: 1;
+            color: #7a7a7a;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .search-modal-close:hover {
+            color: #87008c;
+        }
+        .search-modal-input-wrap {
+            padding: 20px 28px 0;
+            flex-shrink: 0;
+        }
+        .search-modal-input-wrap input {
+            width: 100%;
+            font-family: "Open Sans", sans-serif;
+            font-size: 17px;
+            padding: 14px 16px;
+            border: 1px solid rgba(125,152,163,0.5);
+            border-radius: 4px;
+            background: #f5f2ea;
+            color: #49444c;
+        }
+        .search-modal-hint {
+            padding: 10px 28px 0;
+            font-size: 13px;
+            color: #7a7a7a;
+            flex-shrink: 0;
+        }
+        .search-modal-body {
+            padding: 16px 28px 28px;
+            overflow-y: auto;
+            flex: 1 1 auto;
+        }
+        .search-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            background: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-left: 5px solid #72bfba;
+            border-radius: 5px;
+            padding: 15px 18px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .search-result-row:hover {
+            background: #ece7dd;
+            border-left-color: #87008c;
+        }
+        .search-result-row:last-child {
+            margin-bottom: 0;
+        }
+        .search-result-info {
+            min-width: 0;
+        }
+        .search-result-name {
+            font-family: "Open Sans", sans-serif;
+            font-weight: 700;
+            font-size: 17px;
+            color: #49444c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .search-result-phone {
+            font-size: 14px;
+            color: #7a7a7a;
+            margin-top: 4px;
+        }
+        .search-result-ids {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .search-result-idtag {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .search-result-idtag.tag-qs { background: #000; }
+        .search-result-idtag.tag-lhr { background: #87008c; }
+        .search-result-idtag.tag-matched {
+            box-shadow: 0 0 0 2px #cc9955;
+        }
+        .search-modal-empty, .search-modal-loading {
+            text-align: center;
+            padding: 34px 10px;
+            color: #7a7a7a;
+            font-style: italic;
+            font-size: 15px;
+        }
+
+        /* ---------- Consultation Quick-View Popup ---------- */
+        .consult-popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(58, 58, 58, 0.55);
+            z-index: 2300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .consult-popup {
+            background: #fff;
+            width: 100%;
+            max-width: 460px;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .consult-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 28px;
+            border-bottom: 3px solid #87008c;
+        }
+        .consult-popup-header h3 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 22px;
+            color: #49444c;
+        }
+        .consult-popup-close {
+            background: none;
+            border: none;
+            font-size: 26px;
+            line-height: 1;
+            color: #7a7a7a;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .consult-popup-close:hover {
+            color: #87008c;
+        }
+        .consult-popup-body {
+            padding: 24px 28px 28px;
+        }
+        .consult-popup-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(125,152,163,0.25);
+            font-size: 16px;
+        }
+        .consult-popup-row:last-child {
+            border-bottom: none;
+        }
+        .consult-popup-row span:first-child {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+            color: #cc9955;
+            flex-shrink: 0;
+        }
+        .consult-popup-row span:last-child {
+            text-align: right;
+            color: #49444c;
+        }
         .table-wrapper {
             flex: 1 1 auto;
             min-height: 0;
@@ -941,6 +1173,121 @@
         .session-date-btn:hover {
             background-color: rgba(135,0,140,0.1);
         }
+
+        .walkin-queue-panel {
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(125,152,163,0.31);
+            background: #fbfefe;
+        }
+        .walkin-queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14.5px;
+            color: #49444c;
+            user-select: none;
+        }
+        .walkin-queue-count {
+            display: inline-block;
+            background: #72bfba;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 2px 9px;
+            margin-left: 6px;
+        }
+        .walkin-queue-chevron {
+            font-size: 14px;
+            color: #7a7a7a;
+            transition: transform 0.2s;
+        }
+        .walkin-queue-panel.collapsed .walkin-queue-chevron {
+            transform: rotate(-90deg);
+        }
+        .walkin-queue-panel.collapsed .walkin-queue-body {
+            display: none;
+        }
+        .walkin-queue-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 30px 16px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .walkin-empty {
+            font-size: 13.5px;
+            color: #a0a0a0;
+            font-style: italic;
+            padding: 4px 0;
+        }
+        .walkin-token-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f5f2ea;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 4px;
+            padding: 8px 14px;
+            min-width: 210px;
+        }
+        .walkin-token-row.walkin-token-done {
+            opacity: 0.55;
+        }
+        .walkin-token-num {
+            font-family: "Quando", serif;
+            font-size: 1.1rem;
+            color: #87008c;
+            font-weight: 400;
+            min-width: 34px;
+        }
+        .walkin-token-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.35;
+        }
+        .walkin-token-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #49444c;
+        }
+        .walkin-token-meta {
+            font-size: 12px;
+            color: #7a7a7a;
+        }
+        .walkin-token-ahead {
+            font-weight: 700;
+            color: #5aa9a4;
+        }
+        .walkin-token-done .walkin-token-ahead {
+            color: #a0a0a0;
+        }
+        .badge-walkin {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #87008c;
+            background: rgba(135,0,140,0.1);
+            border-radius: 8px;
+            padding: 1px 7px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .badge-online {
+            display: inline-block;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #5aa9a4;
+            background: rgba(114,191,186,0.15);
+            border-radius: 8px;
+            padding: 1px 7px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -982,6 +1329,12 @@
                     <button class="toggle-btn active" id="consultationServiceBtn">Consultation</button>
                     <button class="toggle-btn" id="laserServiceBtn">Laser</button>
                 </div>
+                <button type="button" class="search-trigger-btn" id="searchPatientBtn" title="Search patient" aria-label="Search patient">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
             </div>
 
             <div class="controls-center">
@@ -998,6 +1351,16 @@
                     <button class="toggle-btn" id="afternoonShiftBtn">Afternoon</button>
                 </div>
                 <button class="create-btn" onclick="window.location.href='create.html'">Create</button>
+            </div>
+        </div>
+
+        <div class="walkin-queue-panel" id="walkinQueuePanel">
+            <div class="walkin-queue-header" id="walkinQueueToggle">
+                <span>🎫 Token Queue <span id="walkinQueueCount" class="walkin-queue-count"></span></span>
+                <span class="walkin-queue-chevron" id="walkinQueueChevron">▾</span>
+            </div>
+            <div class="walkin-queue-body" id="walkinQueueBody">
+                <div class="walkin-empty">No appointments scheduled for this day yet.</div>
             </div>
         </div>
 
@@ -1117,6 +1480,49 @@
         </div>
     </div>
 
+    <div class="search-modal-overlay" id="searchPatientModal">
+        <div class="search-modal">
+            <div class="search-modal-header">
+                <h2 id="searchModalTitle">Search Patient</h2>
+                <button class="search-modal-close" id="searchModalClose">&times;</button>
+            </div>
+            <div class="search-modal-input-wrap">
+                <input type="text" id="searchPatientInput" placeholder="Search by name or phone number...">
+            </div>
+            <div class="search-modal-hint" id="searchModalHint">Type at least 2 characters to search.</div>
+            <div class="search-modal-body" id="searchModalBody">
+                <div class="search-modal-empty">Start typing to find a patient.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="consult-popup-overlay" id="consultPopup">
+        <div class="consult-popup">
+            <div class="consult-popup-header">
+                <h3>Patient Details</h3>
+                <button class="consult-popup-close" id="consultPopupClose">&times;</button>
+            </div>
+            <div class="consult-popup-body">
+                <div class="consult-popup-row">
+                    <span>Name</span>
+                    <span id="consultPopupName">&mdash;</span>
+                </div>
+                <div class="consult-popup-row">
+                    <span>Phone</span>
+                    <span id="consultPopupPhone">&mdash;</span>
+                </div>
+                <div class="consult-popup-row">
+                    <span>Last Visit</span>
+                    <span id="consultPopupLastVisit">&mdash;</span>
+                </div>
+                <div class="consult-popup-row">
+                    <span>Diagnosis</span>
+                    <span id="consultPopupDiagnosis">&mdash;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const CREDENTIALS = {
             reception: { username: 'reception', password: 'reception123' },
@@ -1216,6 +1622,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, addDoc, updateDoc, setDoc, deleteDoc, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { reassignDailyTokens } from "./token-utils.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
@@ -1236,6 +1643,15 @@
         const totalEarnedEl = document.getElementById('totalEarned');
         const totalCashEl = document.getElementById('totalCashText');
         const totalOnlineEl = document.getElementById('totalOnlineText');
+
+        const walkinQueuePanel = document.getElementById('walkinQueuePanel');
+        const walkinQueueToggle = document.getElementById('walkinQueueToggle');
+        const walkinQueueBody = document.getElementById('walkinQueueBody');
+        const walkinQueueCount = document.getElementById('walkinQueueCount');
+        let currentDayDocsById = {};
+        walkinQueueToggle.addEventListener('click', () => {
+            walkinQueuePanel.classList.toggle('collapsed');
+        });
 
         const assignQsIdInput = document.getElementById('assignQsIdInput');
         const saveQsIdBtn = document.getElementById('saveQsIdBtn');
@@ -1799,6 +2215,43 @@
             return `PT-${code}`;
         }
 
+        // Renders the full token queue (walk-ins + online bookings) for the
+        // currently viewed service + date, ordered by token number.
+        // `dayDocs` should be every scheduled appointment for that service+date
+        // (not shift-restricted), so ahead-counts stay correct across the whole day.
+        function renderWalkinQueue(dayDocs) {
+            const queued = dayDocs
+                .filter(d => d.token_number)
+                .sort((a, b) => a.token_number - b.token_number);
+
+            walkinQueueCount.textContent = queued.length ? String(queued.length) : '';
+
+            if (queued.length === 0) {
+                walkinQueueBody.innerHTML = `<div class="walkin-empty">No appointments scheduled for this day yet.</div>`;
+                return;
+            }
+
+            walkinQueueBody.innerHTML = queued.map((w, idx) => {
+                const isDone = w.status === 'Visited';
+                const aheadCount = queued.slice(0, idx).filter(d => d.status !== 'Visited').length;
+                const aheadLabel = isDone ? 'Seen' : `${aheadCount} ahead`;
+                const isWalkin = w.entry_source === 'walkin';
+                const sourceBadge = isWalkin
+                    ? `<span class="badge-walkin">Walk-in</span>`
+                    : `<span class="badge-online">Online</span>`;
+
+                return `
+                    <div class="walkin-token-row ${isDone ? 'walkin-token-done' : ''}">
+                        <span class="walkin-token-num">#${w.token_number}</span>
+                        <span class="walkin-token-info">
+                            <span class="walkin-token-name">${w.patient_name || '—'}${sourceBadge}</span>
+                            <span class="walkin-token-meta">${formatTo12Hour(w.appointment_time)} · <span class="walkin-token-ahead">${aheadLabel}</span></span>
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function syncAppointments() {
             if (unsubscribe) unsubscribe();
 
@@ -1829,6 +2282,7 @@
                     noDataMessage.style.display = "block";
                     tableFooter.style.display = "none";
                     resetCounters();
+                    renderWalkinQueue([]);
                     return;
                 }
 
@@ -1836,6 +2290,8 @@
                 snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
 
                 const scheduledDocs = allDocs.filter(data => data.entry_kind !== 'session_log');
+                currentDayDocsById = Object.fromEntries(scheduledDocs.map(d => [d.id, d]));
+                renderWalkinQueue(scheduledDocs);
 
                 const filteredDocs = scheduledDocs.filter(data => {
                     if (!data.appointment_time) return false;
@@ -1914,10 +2370,16 @@
                     const qsIdCellHtml = `<button type="button" class="id-box-btn id-box-qs" data-id="${data.id}" data-session-type="qs">${patientIds.qs_id || '—'}</button>`;
                     const lhrIdCellHtml = `<button type="button" class="id-box-btn id-box-lhr" data-id="${data.id}" data-session-type="lhr">${patientIds.lhr_id || '—'}</button>`;
 
+                    const walkinBadgeHtml = data.token_number
+                        ? (data.entry_source === 'walkin'
+                            ? `<span class="badge-walkin">🎫 #${data.token_number}</span>`
+                            : `<span class="badge-online">🎫 #${data.token_number}</span>`)
+                        : '';
+
                     tr.innerHTML = `
                         ${doneCellHtml}
                         <td>${formatTo12Hour(data.appointment_time)}</td>
-                        <td>${data.patient_name || ''}</td>
+                        <td>${data.patient_name || ''}${walkinBadgeHtml}</td>
                         <td>${data.patient_phone || ''}</td>
                         <td ${idCellStyle} style="text-align:center;">${qsIdCellHtml}</td>
                         <td ${idCellStyle} style="text-align:center;">${lhrIdCellHtml}</td>
@@ -2018,7 +2480,12 @@
                         const docId = e.target.getAttribute('data-id');
                         if (confirm("Are you sure you want to permanently delete this appointment record?")) {
                             try {
+                                const deletedDocInfo = currentDayDocsById[docId];
                                 await deleteDoc(doc(db, "appointments", docId));
+                                // Close the gap left in the token queue, if this record had one.
+                                if (deletedDocInfo && deletedDocInfo.service_type && deletedDocInfo.appointment_date) {
+                                    await reassignDailyTokens(db, deletedDocInfo.service_type, deletedDocInfo.appointment_date);
+                                }
                             } catch (err) {
                                 console.error("Firestore document erasure operation failed: ", err);
                             }
@@ -2141,6 +2608,206 @@
         document.getElementById('prevDay').addEventListener('click', () => shiftDay(-1));
         document.getElementById('nextDay').addEventListener('click', () => shiftDay(1));
         dateFilter.addEventListener('change', syncAppointments);
+
+        /* ---------- Patient Search ---------- */
+        const searchPatientBtn = document.getElementById('searchPatientBtn');
+        const searchPatientModal = document.getElementById('searchPatientModal');
+        const searchModalClose = document.getElementById('searchModalClose');
+        const searchModalTitle = document.getElementById('searchModalTitle');
+        const searchModalHint = document.getElementById('searchModalHint');
+        const searchModalBody = document.getElementById('searchModalBody');
+        const searchPatientInput = document.getElementById('searchPatientInput');
+
+        const consultPopup = document.getElementById('consultPopup');
+        const consultPopupClose = document.getElementById('consultPopupClose');
+        const consultPopupName = document.getElementById('consultPopupName');
+        const consultPopupPhone = document.getElementById('consultPopupPhone');
+        const consultPopupLastVisit = document.getElementById('consultPopupLastVisit');
+        const consultPopupDiagnosis = document.getElementById('consultPopupDiagnosis');
+
+        let searchDebounceTimer = null;
+        let searchRequestToken = 0;
+
+        function openSearchModal() {
+            const isLaser = activeService === 'Laser Hair Removal';
+            searchModalTitle.textContent = isLaser ? 'Search Laser Patient' : 'Search Consultation Patient';
+            searchPatientInput.placeholder = isLaser
+                ? 'Search by name, phone, QS ID or LHR ID...'
+                : 'Search by name or phone number...';
+            searchModalHint.textContent = 'Type at least 2 characters to search.';
+            searchModalBody.innerHTML = `<div class="search-modal-empty">Start typing to find a patient.</div>`;
+            searchPatientInput.value = '';
+            searchPatientModal.style.display = 'flex';
+            setTimeout(() => searchPatientInput.focus(), 50);
+        }
+
+        function closeSearchModal() {
+            searchPatientModal.style.display = 'none';
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        }
+
+        searchPatientBtn.addEventListener('click', openSearchModal);
+        searchModalClose.addEventListener('click', closeSearchModal);
+        searchPatientModal.addEventListener('click', (e) => {
+            if (e.target === searchPatientModal) closeSearchModal();
+        });
+
+        searchPatientInput.addEventListener('input', () => {
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            const term = searchPatientInput.value.trim();
+            if (term.length < 2) {
+                searchModalBody.innerHTML = `<div class="search-modal-empty">Start typing to find a patient.</div>`;
+                return;
+            }
+            searchDebounceTimer = setTimeout(() => runPatientSearch(term), 350);
+        });
+
+        async function runPatientSearch(term) {
+            const myToken = ++searchRequestToken;
+            const isLaser = activeService === 'Laser Hair Removal';
+            searchModalBody.innerHTML = `<div class="search-modal-loading">Searching…</div>`;
+
+            try {
+                const q = query(
+                    collection(db, "appointments"),
+                    where("service_type", "==", activeService)
+                );
+                const snap = await getDocs(q);
+                if (myToken !== searchRequestToken) return; // a newer search superseded this one
+
+                const byPatient = {};
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.entry_kind === 'session_log') return;
+
+                    const key = data.patient_id || `phone:${data.patient_phone || ''}:${data.patient_name || ''}`;
+                    const sortKey = `${data.appointment_date || ''} ${data.appointment_time || ''}`;
+                    const existing = byPatient[key];
+                    if (!existing || sortKey > existing.sortKey) {
+                        byPatient[key] = {
+                            id: docSnap.id,
+                            patient_id: data.patient_id || null,
+                            patient_name: data.patient_name || '',
+                            patient_phone: data.patient_phone || '',
+                            diagnosis: data.diagnosis || '',
+                            appointment_date: data.appointment_date || '',
+                            sortKey
+                        };
+                    }
+                });
+
+                let results = Object.values(byPatient);
+
+                if (isLaser) {
+                    const uniquePatientIds = [...new Set(results.map(r => r.patient_id).filter(Boolean))];
+                    const idMap = {};
+                    await Promise.all(uniquePatientIds.map(async pid => {
+                        try {
+                            const pSnap = await getDoc(doc(db, "patients", pid));
+                            if (pSnap.exists()) idMap[pid] = pSnap.data();
+                        } catch (e) {
+                            console.log("Could not resolve patient ID doc for search:", e);
+                        }
+                    }));
+                    if (myToken !== searchRequestToken) return;
+                    results = results.map(r => ({
+                        ...r,
+                        qs_id: (idMap[r.patient_id] || {}).qs_id || '',
+                        lhr_id: (idMap[r.patient_id] || {}).lhr_id || ''
+                    }));
+                }
+
+                const lowerTerm = term.toLowerCase();
+                results = results.filter(r => {
+                    const name = (r.patient_name || '').toLowerCase();
+                    const phone = (r.patient_phone || '').toLowerCase();
+                    r.matchedField = null;
+
+                    if (isLaser) {
+                        const qs = (r.qs_id || '').toLowerCase();
+                        const lhr = (r.lhr_id || '').toLowerCase();
+                        if (qs && qs.includes(lowerTerm)) r.matchedField = 'qs';
+                        else if (lhr && lhr.includes(lowerTerm)) r.matchedField = 'lhr';
+                    }
+
+                    if (!r.matchedField && (name.includes(lowerTerm) || phone.includes(lowerTerm))) {
+                        r.matchedField = 'name';
+                    }
+
+                    return !!r.matchedField;
+                });
+
+                results.sort((a, b) => (a.patient_name || '').localeCompare(b.patient_name || ''));
+
+                renderSearchResults(results, isLaser);
+            } catch (err) {
+                console.error("Patient search failed: ", err);
+                if (myToken === searchRequestToken) {
+                    searchModalBody.innerHTML = `<div class="search-modal-empty">Something went wrong while searching. Please try again.</div>`;
+                }
+            }
+        }
+
+        function renderSearchResults(results, isLaser) {
+            if (results.length === 0) {
+                searchModalBody.innerHTML = `<div class="search-modal-empty">No matching patients found.</div>`;
+                return;
+            }
+
+            searchModalBody.innerHTML = results.map(r => {
+                let idTagsHtml = '';
+                if (isLaser) {
+                    idTagsHtml = `<div class="search-result-ids">
+                        ${r.qs_id ? `<span class="search-result-idtag tag-qs${r.matchedField === 'qs' ? ' tag-matched' : ''}">QS ${r.qs_id}</span>` : ''}
+                        ${r.lhr_id ? `<span class="search-result-idtag tag-lhr${r.matchedField === 'lhr' ? ' tag-matched' : ''}">LHR ${r.lhr_id}</span>` : ''}
+                    </div>`;
+                }
+                return `<div class="search-result-row" data-doc-id="${r.id}">
+                    <div class="search-result-info">
+                        <div class="search-result-name">${r.patient_name || 'Unnamed Patient'}</div>
+                        <div class="search-result-phone">${r.patient_phone || 'No phone on file'}</div>
+                    </div>
+                    ${idTagsHtml}
+                </div>`;
+            }).join('');
+
+            searchModalBody.querySelectorAll('.search-result-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const docId = row.getAttribute('data-doc-id');
+                    const result = results.find(r => r.id === docId);
+                    if (!result) return;
+                    if (isLaser) {
+                        closeSearchModal();
+                        const sessionType = result.matchedField === 'qs' ? 'qs' : 'lhr';
+                        openPatientView(sessionType, docId);
+                    } else {
+                        showConsultPopup(result);
+                    }
+                });
+            });
+        }
+
+        function showConsultPopup(result) {
+            consultPopupName.textContent = result.patient_name || '—';
+            consultPopupPhone.textContent = result.patient_phone || '—';
+            consultPopupDiagnosis.textContent = result.diagnosis || '—';
+            if (result.appointment_date) {
+                const visitDate = new Date(`${result.appointment_date}T00:00:00`);
+                consultPopupLastVisit.textContent = isNaN(visitDate)
+                    ? result.appointment_date
+                    : visitDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } else {
+                consultPopupLastVisit.textContent = '—';
+            }
+            consultPopup.style.display = 'flex';
+        }
+
+        consultPopupClose.addEventListener('click', () => {
+            consultPopup.style.display = 'none';
+        });
+        consultPopup.addEventListener('click', (e) => {
+            if (e.target === consultPopup) consultPopup.style.display = 'none';
+        });
 
         window.syncAppointments = syncAppointments;
         window.stopSync = () => { if (unsubscribe) unsubscribe(); };
