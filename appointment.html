@@ -7,6 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Flatpickr CSS for the custom date picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr Custom Theme -->
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
     <style>
         * {
             box-sizing: border-box;
@@ -143,12 +149,14 @@
             font-size: 16px;
             color: #49444c;
             font-weight: 600;
+            flex-shrink: 0;
         }
         .form-field-wrapper {
             flex-grow: 1;
             display: flex;
             gap: 15px;
             align-items: center;
+            min-width: 0;
         }
         .input-box {
             width: 100%;
@@ -287,8 +295,7 @@
                 gap: clamp(6px, 1.1vh, 10px);
                 width: 100%;
             }
-            .form-field-wrapper input,
-            .form-field-wrapper select {
+            .form-field-wrapper > div {
                 width: 100% !important;
             }
             .input-box {
@@ -358,10 +365,15 @@
                     <div class="form-row">
                         <label class="form-label">Schedule</label>
                         <div class="form-field-wrapper">
-                            <input type="date" id="date" class="input-box" required style="width: 50%;">
-                            <select id="time" class="input-box" required style="width: 50%;">
-                                <option value="" disabled selected>-- Select Time --</option>
-                            </select>
+                            <!-- Wrapped in divs to ensure perfect 50/50 sizing immune to injected DOM elements -->
+                            <div style="flex: 1; min-width: 0; width: 100%;">
+                                <input type="text" id="date" name="date" class="input-box" placeholder="Select Date" required>
+                            </div>
+                            <div style="flex: 1; min-width: 0; width: 100%;">
+                                <select id="time" class="input-box" required>
+                                    <option value="" disabled selected>-- Select Time --</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -381,6 +393,9 @@
             navToggle.setAttribute('aria-expanded', isOpen);
         });
     </script>
+
+    <!-- Flatpickr JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -403,29 +418,75 @@
         const dateInput = document.getElementById('date');
         const timeSelect = document.getElementById('time');
 
-        // --- RESTRICT DATE TO TOMORROW OR LATER ---
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const yyyy = tomorrow.getFullYear();
-        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0'); 
-        const dd = String(tomorrow.getDate()).padStart(2, '0');
-        dateInput.min = `${yyyy}-${mm}-${dd}`;
-        dateInput.value = `${yyyy}-${mm}-${dd}`; // Pre-select tomorrow automatically
+        // --- TIME FORMATTING HELPER ---
+        function formatTo12Hour(timeStr) {
+            if (!timeStr) return '';
+            const parts = timeStr.split(':');
+            if (parts.length < 2) return timeStr;
+            
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1];
+            
+            if (isNaN(hours)) return timeStr;
+            
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+        // --- INITIALIZE FLATPICKR (GREYS OUT SUNDAYS) ---
+        flatpickr("#date", {
+            minDate: "today",
+            dateFormat: "Y-m-d", // Keeps standard data format matching Firebase
+            altInput: true,
+            altFormat: "d/m/Y", // Visual presentation
+            disable: [
+                function(date) {
+                    // Disable Sundays (0 = Sunday)
+                    return (date.getDay() === 0);
+                }
+            ],
+            onReady: function(selectedDates, dateStr, instance) {
+                // Ensure default date is valid
+                let defaultDate = new Date();
+                if (defaultDate.getDay() === 0) {
+                    defaultDate.setDate(defaultDate.getDate() + 1); // Shift to Monday
+                }
+                instance.setDate(defaultDate, true);
+            },
+            onChange: function(selectedDates, dateStr, instance) {
+                updateAvailableTimeSlots();
+            }
+        });
 
         // --- GENERATE AND SYNC SLOT CONFLICTS ---
-        // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 15-minute slots
         function generateTimeSlots(service) {
-            const interval = service === 'Laser Hair Removal' ? 60 : 15;
+            // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 10-minute slots
+            const interval = service === 'Laser Hair Removal' ? 60 : 10;
             const slots = [];
-            for (let hour = 9; hour < 18; hour++) {
-                for (let min = 0; min < 60; min += interval) {
-                    const hh = String(hour).padStart(2, '0');
-                    const mm = String(min).padStart(2, '0');
-                    slots.push(`${hh}:${mm}`);
+            
+            function addSlotsInRange(startHour, startMin, endHour, endMin) {
+                const startTotalMins = startHour * 60 + startMin;
+                const endTotalMins = endHour * 60 + endMin;
+                
+                for (let m = startTotalMins; m <= endTotalMins; m += interval) {
+                    const hh = String(Math.floor(m / 60)).padStart(2, '0');
+                    const mins = String(m % 60).padStart(2, '0');
+                    slots.push(`${hh}:${mins}`);
                 }
             }
+
+            // Morning shift: 10:00 AM to 1:30 PM (13:30)
+            addSlotsInRange(10, 0, 13, 30);
+            
+            // Add a clear text divider flag for the dropdown renderer to catch
+            slots.push("DIVIDER");
+
+            // Afternoon/Evening shift: 4:30 PM (16:30) to 7:30 PM (19:30)
+            addSlotsInRange(16, 30, 19, 30);
+
             return slots;
         }
 
@@ -435,7 +496,8 @@
             if (unsubscribeSlots) unsubscribeSlots();
 
             const selectedService = serviceInput.value;
-            const selectedDate = dateInput.value;
+            // Get raw YYYY-MM-DD from Flatpickr
+            const selectedDate = document.getElementById('date').value;
 
             if (!selectedService || !selectedDate) return;
 
@@ -460,9 +522,18 @@
                 timeSelect.innerHTML = '<option value="" disabled selected>-- Select Time --</option>';
 
                 timeSlots.forEach(slot => {
+                    // Check for our custom separator
+                    if (slot === "DIVIDER") {
+                        const divider = document.createElement('option');
+                        divider.disabled = true;
+                        divider.textContent = '────── Evening ──────';
+                        timeSelect.appendChild(divider);
+                        return; // exit current loop cycle
+                    }
+
                     const option = document.createElement('option');
                     option.value = slot;
-                    option.textContent = slot;
+                    option.textContent = formatTo12Hour(slot); // Render to user as 12hr
 
                     if (bookedTimes.has(slot)) {
                         option.disabled = true;
@@ -478,7 +549,6 @@
         }
 
         serviceInput.addEventListener('change', updateAvailableTimeSlots);
-        dateInput.addEventListener('change', updateAvailableTimeSlots);
 
         // --- HANDLE FORM SUBMISSION ---
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
@@ -487,7 +557,7 @@
             const service = serviceInput.value;
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
-            const date = dateInput.value;
+            const date = document.getElementById('date').value;
             const time = timeSelect.value;
 
             try {
@@ -497,7 +567,7 @@
                     patient_name: name,
                     patient_phone: phone,
                     appointment_date: date,
-                    appointment_time: time,
+                    appointment_time: time, // Send purely as 24-hr layout securely matching admin dashboard
                     status: "Booked",
                     entry_source: "online",
                     createdAt: new Date(),
@@ -518,7 +588,7 @@
                 const params = new URLSearchParams({
                     name: name,
                     date: date,
-                    time: time,
+                    time: formatTo12Hour(time), // Format for nice display on the confirmation page
                     service: service,
                     token: tokenNumber,
                     ahead: aheadCount
