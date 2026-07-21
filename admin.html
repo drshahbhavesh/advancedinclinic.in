@@ -1768,7 +1768,6 @@
 
                 th.addEventListener('dragstart', function(e) {
                     const colKey = th.getAttribute('data-col');
-                    // Exclude special handling or actions if needed
                     if (colKey === 'col-actions' || colKey === 'col-done') {
                         // Optional constraint: restrict moving system crucial fields
                     }
@@ -2382,14 +2381,19 @@
         }
 
         function renderWalkinQueue(dayDocs) {
+            // Filter tokens by active shift (Morning: < 15:00, Afternoon: >= 15:00)
             const queued = dayDocs
-                .filter(d => d.token_number)
+                .filter(d => {
+                    if (!d.token_number || !d.appointment_time) return false;
+                    const hour = parseInt(d.appointment_time.split(':')[0], 10);
+                    return activeShift === 'morning' ? hour < 15 : hour >= 15;
+                })
                 .sort((a, b) => a.token_number - b.token_number);
 
             walkinQueueCount.textContent = queued.length ? String(queued.length) : '';
 
             if (queued.length === 0) {
-                walkinQueueBody.innerHTML = `<div class="walkin-empty">No appointments scheduled for this day yet.</div>`;
+                walkinQueueBody.innerHTML = `<div class="walkin-empty">No tokens scheduled for this shift yet.</div>`;
                 return;
             }
 
@@ -2421,7 +2425,6 @@
 
             const headers = Array.from(headerRow.querySelectorAll('th'));
             
-            // Build visual representation map
             let paymentIdx = -1;
             let typeIdx = -1;
             let visibleBeforePaymentCount = 0;
@@ -2466,7 +2469,6 @@
                    </label>`
                 : '';
 
-            // Render columns prior to payment location
             if (visibleBeforePaymentCount > 0) {
                 const labelTd = document.createElement('td');
                 labelTd.setAttribute('colspan', visibleBeforePaymentCount);
@@ -2475,7 +2477,6 @@
                 footerTr.appendChild(labelTd);
             }
 
-            // Render matching structural cells depending on structural placement
             if (paymentIdx !== -1) {
                 const earnedTd = document.createElement('td');
                 earnedTd.id = "totalEarned";
@@ -2489,12 +2490,9 @@
                 breakdownTd.id = "totalBreakdown";
                 breakdownTd.className = "totals-value";
                 breakdownTd.innerHTML = `<span>${cashLabel}</span><span class="breakdown-divider">|</span><span>${onlineLabel}</span>`;
-                
-                // If Type sits adjacent next to Payment or scattered out, let it occupy custom alignment span
                 footerTr.appendChild(breakdownTd);
             }
 
-            // Calculate remaining slots remaining on right
             let accountedCells = visibleBeforePaymentCount + (paymentIdx !== -1 ? 1 : 0) + (typeIdx !== -1 ? 1 : 0);
             let remainingSlots = totalVisibleColumns - accountedCells;
 
@@ -2506,7 +2504,6 @@
 
             tableFooter.appendChild(footerTr);
 
-            // Re-bind listeners for toggle checkbox state if inside reception mode view context
             const newCheckbox = document.getElementById('totalsRevealCheckbox');
             if (newCheckbox) {
                 newCheckbox.addEventListener('change', () => {
@@ -2548,6 +2545,8 @@
 
                 const scheduledDocs = allDocs.filter(data => data.entry_kind !== 'session_log');
                 currentDayDocsById = Object.fromEntries(scheduledDocs.map(d => [d.id, d]));
+                
+                // Renders the walk-in queue filtered by the active shift
                 renderWalkinQueue(scheduledDocs);
 
                 const filteredDocs = scheduledDocs.filter(data => {
@@ -2581,7 +2580,6 @@
                     patientIdMap = Object.fromEntries(lookups);
                 }
 
-                // Gather layout structure elements to populate table columns securely
                 const headers = Array.from(document.querySelectorAll('#tableHeaderRow th'));
 
                 filteredDocs.forEach(data => {
@@ -2600,7 +2598,6 @@
                     const lockedInputAttr = isLocked ? 'disabled' : '';
                     const patientIds = patientIdMap[data.patient_id] || {};
 
-                    // Build column element cells tracking current user setup structure order configuration dynamically
                     headers.forEach(th => {
                         const colType = th.getAttribute('data-col');
                         if (th.style.display === 'none') return; 
@@ -2687,7 +2684,6 @@
                     }
                 });
 
-                // Compute updated figures state
                 let totalEarned = 0, totalCash = 0, totalOnline = 0;
                 filteredDocs.forEach(data => {
                     const amount = Number(data.payment) || 0;
@@ -2698,11 +2694,9 @@
 
                 currentCalculatedTotals = { earned: totalEarned, cash: totalCash, online: totalOnline };
                 
-                // Mount tracking layout elements dynamically
                 tableFooter.style.display = "";
                 renderDynamicFooterRow();
 
-                // Re-bind actions listeners dynamically
                 document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
