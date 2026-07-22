@@ -364,7 +364,13 @@
                     <div class="form-row">
                         <label for="age" class="form-label">Age</label>
                         <div class="form-field-wrapper">
-                            <input type="number" id="age" class="input-box size-short" min="0">
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <input type="number" id="age" class="input-box" min="0" style="width: 70px;">
+                                <select id="ageUnit" class="input-box" style="width: 95px; padding: 10px 5px;">
+                                    <option value="years">Years</option>
+                                    <option value="months">Months</option>
+                                </select>
+                            </div>
                             
                             <span class="inline-label">Gender</span>
                             <select id="gender" class="input-box" style="flex-grow: 1;">
@@ -555,6 +561,9 @@
                     nameInput.value = data.patient_name || "";
                     addressInput.value = data.patient_address || ""; 
                     document.getElementById('age').value = data.age || "";
+                    if (document.getElementById('ageUnit')) {
+                        document.getElementById('ageUnit').value = data.age_unit || "years";
+                    }
                     document.getElementById('gender').value = data.gender || "";
                     document.getElementById('payment').value = data.payment || "";
                     document.getElementById('paymentType').value = data.payment_type || "";
@@ -592,10 +601,6 @@
             return `PT-${code}`;
         }
 
-        // --- TOKEN QUEUE ---
-        // Token assignment lives in token-utils.js (reassignDailyTokens /
-        // countStillWaitingAhead), shared with appointment.html so walk-ins and
-        // online bookings draw from one time-ordered queue per service + date.
         const tokenReadoutEl = document.getElementById('tokenReadout');
 
         function showLastTokenReadout(tokenNumber, patientName, slotDisplay, aheadCount) {
@@ -614,6 +619,9 @@
             nameInput.value = record.patient_name || "";
             addressInput.value = record.patient_address || ""; 
             document.getElementById('age').value = record.age || "";
+            if (document.getElementById('ageUnit')) {
+                document.getElementById('ageUnit').value = record.age_unit || "years";
+            }
             document.getElementById('gender').value = record.gender || "";
             
             if (record.appointment_date) {
@@ -639,6 +647,9 @@
             nameSelector.style.display = "none";
             addressInput.value = "";
             document.getElementById('age').value = "";
+            if (document.getElementById('ageUnit')) {
+                document.getElementById('ageUnit').value = "years";
+            }
             document.getElementById('gender').value = "";
             document.getElementById('reference').value = "";
             lookupStatus.style.display = "none";
@@ -699,6 +710,9 @@
                             nameInput.value = "";
                             addressInput.value = "";
                             document.getElementById('age').value = "";
+                            if (document.getElementById('ageUnit')) {
+                                document.getElementById('ageUnit').value = "years";
+                            }
                             document.getElementById('gender').value = "";
                             document.getElementById('reference').value = "";
                             lookupStatus.style.display = "none";
@@ -769,6 +783,7 @@
             const phone = phoneInput.value;
             const address = addressInput.value.trim();
             const age = document.getElementById('age').value;
+            const ageUnit = document.getElementById('ageUnit') ? document.getElementById('ageUnit').value : 'years';
             const gender = document.getElementById('gender').value;
             
             const payment = document.getElementById('payment').value;
@@ -785,6 +800,7 @@
                 patient_phone: phone,
                 patient_address: address, 
                 age: age ? Number(age) : "",
+                age_unit: age ? ageUnit : "years",
                 gender: gender,
                 payment: payment ? Number(payment) : "", 
                 payment_type: paymentType,
@@ -794,9 +810,6 @@
 
             try {
                 if (editId) {
-                    // Editing an existing record (walk-in or online) - the record keeps
-                    // its entry_source, but its position in the queue may need to shift
-                    // if the time/date/service changed, so we recompute after saving.
                     const docRef = doc(db, "appointments", editId);
                     await updateDoc(docRef, appointmentPayload);
 
@@ -809,8 +822,6 @@
                     alert("Appointment updated successfully!");
                     window.location.href = "admin.html";
                 } else {
-                    // Every fresh record created here is a walk-in checked in at the counter.
-                    // It joins the SAME token queue as online bookings for this service+date.
                     const newDocRef = await addDoc(collection(db, "appointments"), {
                         ...appointmentPayload,
                         follow_up: "",
@@ -829,7 +840,6 @@
                         );
                     }
 
-                    // Recompute the whole day's queue now that this walk-in has joined it.
                     const dayEntries = await reassignDailyTokens(db, serviceType, appointmentDate);
                     const mine = dayEntries.find(e => e.id === newDocRef.id);
                     const tokenNumber = mine ? mine.token_number : '?';

@@ -1692,6 +1692,9 @@
 
         // Global variables to hold settings state
         let currentCalculatedTotals = { earned: 0, cash: 0, online: 0 };
+        let isTotalsRevealed = null;
+        let lastRenderedRole = null;
+
         const ORDER_STORAGE_KEY = 'appointmentsTableColOrder';
         const WIDTH_STORAGE_KEY = 'appointmentsTableColWidths';
 
@@ -2480,24 +2483,24 @@
                 return;
             }
 
+            // Sync the visibility state logically against the logged-in user
+            if (lastRenderedRole !== userRole) {
+                isTotalsRevealed = (userRole === 'doctor');
+                lastRenderedRole = userRole;
+            }
+
+            const amountsShown = isTotalsRevealed;
+
             tableFooter.innerHTML = "";
             const footerTr = document.createElement('tr');
             footerTr.className = "totals-row";
-
-            const revealCheckbox = document.getElementById('totalsRevealCheckbox');
-            
-            // Allow both Doctor and Reception to hide/show the totals. 
-            // Default Doctor to shown, Reception to hidden.
-            let isRevealed = revealCheckbox ? revealCheckbox.checked : (userRole === 'doctor');
-            const amountsShown = isRevealed;
 
             let earnedLabel = amountsShown ? `₹${currentCalculatedTotals.earned.toLocaleString('en-IN')}` : "••••";
             let cashLabel = amountsShown ? `Cash ₹${currentCalculatedTotals.cash.toLocaleString('en-IN')}` : "Cash ••••";
             let onlineLabel = amountsShown ? `Online ₹${currentCalculatedTotals.online.toLocaleString('en-IN')}` : "Online ••••";
 
-            // Render the checkbox for all roles now
             const revealWrapHtml = `<label class="totals-reveal" id="totalsRevealWrap">
-                       <input type="checkbox" id="totalsRevealCheckbox" ${isRevealed ? 'checked' : ''}>
+                       <input type="checkbox" id="totalsRevealCheckbox" ${amountsShown ? 'checked' : ''}>
                    </label>`;
 
             if (visibleBeforePaymentCount > 0) {
@@ -2535,9 +2538,11 @@
 
             tableFooter.appendChild(footerTr);
 
+            // Re-attach the event listener now that the new DOM element exists
             const newCheckbox = document.getElementById('totalsRevealCheckbox');
             if (newCheckbox) {
-                newCheckbox.addEventListener('change', () => {
+                newCheckbox.addEventListener('change', (e) => {
+                    isTotalsRevealed = e.target.checked;
                     renderDynamicFooterRow();
                 });
             }
@@ -2660,7 +2665,11 @@
                                 td.innerHTML = `<button type="button" class="id-box-btn id-box-lhr" data-id="${data.id}" data-session-type="lhr">${patientIds.lhr_id || '—'}</button>`;
                                 break;
                             case 'col-age':
-                                td.textContent = data.age || '--';
+                                if (data.age) {
+                                    td.textContent = data.age_unit === 'months' ? `${data.age} m` : data.age;
+                                } else {
+                                    td.textContent = '--';
+                                }
                                 break;
                             case 'col-address':
                                 td.textContent = data.patient_address || '--';
