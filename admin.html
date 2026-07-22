@@ -602,6 +602,8 @@
             border-top: 2px solid #72bfba;
             font-family: "Open Sans", sans-serif;
             padding: 14px 16px;
+            overflow: visible; /* Prevents text from being cut off */
+            text-overflow: clip; /* Removes the ellipsis */
         }
         .totals-label {
             font-weight: 700;
@@ -615,6 +617,8 @@
             font-size: 15px;
             color: #2f7a5f;
             white-space: nowrap;
+            position: relative; /* Ensures the overflowing text stays on top of the next cell */
+            z-index: 10;
         }
         #totalBreakdown {
             white-space: nowrap;
@@ -1249,20 +1253,44 @@
         .walkin-queue-panel.collapsed .walkin-queue-body {
             display: none;
         }
+        
+        /* Updated Token Queue Container for Horizontal Scroll */
         .walkin-queue-body {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 10px;
             padding: 0 30px 16px;
-            max-height: 220px;
-            overflow-y: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
         }
+        
+        /* Thin, clean custom scrollbar for the queue container */
+        .walkin-queue-body::-webkit-scrollbar {
+            height: 6px;
+        }
+        .walkin-queue-body::-webkit-scrollbar-track {
+            background: rgba(125,152,163,0.1);
+            border-radius: 4px;
+            margin: 0 30px;
+        }
+        .walkin-queue-body::-webkit-scrollbar-thumb {
+            background: rgba(125,152,163,0.4);
+            border-radius: 4px;
+        }
+        .walkin-queue-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(125,152,163,0.6);
+        }
+
         .walkin-empty {
             font-size: 13.5px;
             color: #a0a0a0;
             font-style: italic;
             padding: 4px 0;
+            white-space: nowrap;
         }
+        
+        /* Updated Token Style with flex-shrink: 0 to maintain shape */
         .walkin-token-row {
             display: flex;
             align-items: center;
@@ -1272,6 +1300,7 @@
             border-radius: 4px;
             padding: 8px 14px;
             min-width: 210px;
+            flex-shrink: 0;
         }
         .walkin-token-row.walkin-token-done {
             opacity: 0.55;
@@ -2418,7 +2447,6 @@
             }).join('');
         }
 
-        // Rebuilds the sticky alignment of footer data mapping dynamically with visible/reordered header columns
         function renderDynamicFooterRow() {
             const headerRow = document.getElementById('tableHeaderRow');
             if (!headerRow || !tableFooter) return;
@@ -2457,17 +2485,20 @@
             footerTr.className = "totals-row";
 
             const revealCheckbox = document.getElementById('totalsRevealCheckbox');
-            const amountsShown = (userRole !== 'reception' || (revealCheckbox && revealCheckbox.checked));
+            
+            // Allow both Doctor and Reception to hide/show the totals. 
+            // Default Doctor to shown, Reception to hidden.
+            let isRevealed = revealCheckbox ? revealCheckbox.checked : (userRole === 'doctor');
+            const amountsShown = isRevealed;
 
             let earnedLabel = amountsShown ? `₹${currentCalculatedTotals.earned.toLocaleString('en-IN')}` : "••••";
             let cashLabel = amountsShown ? `Cash ₹${currentCalculatedTotals.cash.toLocaleString('en-IN')}` : "Cash ••••";
             let onlineLabel = amountsShown ? `Online ₹${currentCalculatedTotals.online.toLocaleString('en-IN')}` : "Online ••••";
 
-            const revealWrapHtml = userRole === 'reception' 
-                ? `<label class="totals-reveal" id="totalsRevealWrap">
-                       <input type="checkbox" id="totalsRevealCheckbox" ${revealCheckbox && revealCheckbox.checked ? 'checked' : ''}>
-                   </label>`
-                : '';
+            // Render the checkbox for all roles now
+            const revealWrapHtml = `<label class="totals-reveal" id="totalsRevealWrap">
+                       <input type="checkbox" id="totalsRevealCheckbox" ${isRevealed ? 'checked' : ''}>
+                   </label>`;
 
             if (visibleBeforePaymentCount > 0) {
                 const labelTd = document.createElement('td');
