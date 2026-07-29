@@ -8,9 +8,21 @@
 // an already-booked online patient correctly slots in ahead of them, and
 // everyone after gets renumbered.
 //
+// The day is split into two independent token sequences at the 3:00 PM
+// shift boundary (matching admin.html's morning/afternoon shift split):
+// tokens 1..n for the morning shift (appointment_time < 15:00), and a fresh
+// 1..n for the afternoon shift (appointment_time >= 15:00).
+//
 // reassignDailyTokens() is the single source of truth: call it after any
 // create, reschedule, or delete that touches a given service+date, and it
 // recomputes token_number for every appointment in that group in one batch.
+
+const SHIFT_BOUNDARY_HOUR = 15; // 3:00 PM
+
+function shiftForTime(appointmentTime) {
+    const hour = parseInt(appointmentTime.split(':')[0], 10);
+    return hour < SHIFT_BOUNDARY_HOUR ? 'morning' : 'afternoon';
+}
 
 import {
     collection,
@@ -54,7 +66,8 @@ export async function reassignDailyTokens(db, serviceType, appointmentDate) {
             entry_source: data.entry_source || 'online',
             patient_name: data.patient_name || '',
             createdMs: data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : 0,
-            prevToken: data.token_number || null
+            prevToken: data.token_number || null,
+            shift: shiftForTime(data.appointment_time)
         });
     });
 
@@ -68,8 +81,12 @@ export async function reassignDailyTokens(db, serviceType, appointmentDate) {
     const batch = writeBatch(db);
     let pendingWrites = 0;
 
-    entries.forEach((entry, idx) => {
-        const newToken = idx + 1;
+    // Number each shift's queue independently, starting back at 1 for the
+    // afternoon shift instead of continuing the morning's count.
+    const shiftCounters = { morning: 0, afternoon: 0 };
+    entries.forEach(entry => {
+        shiftCounters[entry.shift] += 1;
+        const newToken = shiftCounters[entry.shift];
         entry.token_number = newToken;
         if (entry.prevToken !== newToken) {
             batch.update(doc(db, "appointments", entry.id), { token_number: newToken });
@@ -86,10 +103,14 @@ export async function reassignDailyTokens(db, serviceType, appointmentDate) {
 
 /**
  * Given the ordered entries returned by reassignDailyTokens, counts how many
- * patients ahead of the given entry are still waiting (not yet Visited).
+ * patients ahead of the given entry, within the same shift, are still
+ * waiting (not yet Visited).
  */
 export function countStillWaitingAhead(entries, entryId) {
     const idx = entries.findIndex(e => e.id === entryId);
     if (idx === -1) return 0;
-    return entries.slice(0, idx).filter(e => e.status !== 'Visited').length;
+    const mine = entries[idx];
+    return entries
+        .slice(0, idx)
+        .filter(e => e.shift === mine.shift && e.status !== 'Visited').length;
 }

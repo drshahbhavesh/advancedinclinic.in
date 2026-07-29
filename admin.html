@@ -534,6 +534,13 @@
         .col-actions { width: 80px; text-align: center; }
         .col-callback { width: 100px; }
 
+        .online-booking-row {
+            background-color: #e2f0fb !important;
+        }
+        .online-booking-row td {
+            background-color: #e2f0fb !important;
+        }
+
         .completed-row {
             background-color: #e2f3ec !important;
         }
@@ -767,6 +774,9 @@
             cursor: pointer;
         }
 
+        .role-reception #analyticsNavBtn {
+            display: none;
+        }
         .role-reception .col-done,
         .role-reception .col-done-cell {
             display: none;
@@ -1337,8 +1347,8 @@
             display: inline-block;
             font-size: 10.5px;
             font-weight: 700;
-            color: #87008c;
-            background: rgba(135,0,140,0.1);
+            color: #5aa9a4;
+            background: rgba(114,191,186,0.15);
             border-radius: 8px;
             padding: 1px 7px;
             margin-left: 6px;
@@ -1348,8 +1358,8 @@
             display: inline-block;
             font-size: 10.5px;
             font-weight: 700;
-            color: #5aa9a4;
-            background: rgba(114,191,186,0.15);
+            color: #87008c;
+            background: rgba(135,0,140,0.1);
             border-radius: 8px;
             padding: 1px 7px;
             margin-left: 6px;
@@ -1384,6 +1394,7 @@
             <div class="nav-links" id="navLinks">
                 <a href="index.html">Site</a>
                 <a class="callback-nav-btn" id="callbackNavBtn">📞 Call Backs</a>
+                <a href="analytics.html" id="analyticsNavBtn">📊 Analytics</a>
                 <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
                 <span class="role-badge" id="roleBadge"></span>
                 <a class="logout-link" id="logoutLink">Log Out</a>
@@ -2293,6 +2304,7 @@
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     dueToday.push({
+                        id: docSnap.id,
                         name: data.patient_name || '—',
                         phone: data.patient_phone || '—',
                         lastVisit: data.appointment_date || '—',
@@ -2328,7 +2340,7 @@
                 return `
                     <div class="callback-row" data-entry-index="${i}">
                         <div class="callback-check-col">
-                            <input type="checkbox" class="callback-done-checkbox" title="Mark as called">
+                            <input type="checkbox" class="callback-done-checkbox" data-id="${entry.id}" title="Mark as called">
                         </div>
                         <div class="callback-entry">
                             <div class="callback-entry-name">${entry.name}</div>
@@ -2341,10 +2353,11 @@
             }).join('');
 
             callbackModalBody.querySelectorAll('.callback-done-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
+                checkbox.addEventListener('change', async (e) => {
                     const rowEl = e.target.closest('.callback-row');
                     const entryEl = rowEl.querySelector('.callback-entry');
                     const isDone = e.target.checked;
+                    const docId = e.target.getAttribute('data-id');
 
                     entryEl.classList.toggle('callback-done', isDone);
 
@@ -2357,6 +2370,32 @@
                         } else {
                             callbackModalBody.appendChild(rowEl);
                         }
+                    }
+
+                    // Persist so this call back doesn't come back the next
+                    // time the reminder popup opens. Checking it off clears
+                    // call_back_due_date (so the "due today" query no longer
+                    // matches it); unchecking restores today's due date.
+                    e.target.disabled = true;
+                    try {
+                        if (isDone) {
+                            await updateDoc(doc(db, "appointments", docId), {
+                                call_back_due_date: null,
+                                call_back_completed_at: toLocalDateStr(new Date())
+                            });
+                        } else {
+                            await updateDoc(doc(db, "appointments", docId), {
+                                call_back_due_date: toLocalDateStr(new Date()),
+                                call_back_completed_at: null
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Failed to save call back status: ", err);
+                        alert("Couldn't save that call back status — please try again.");
+                        e.target.checked = !isDone;
+                        entryEl.classList.toggle('callback-done', !isDone);
+                    } finally {
+                        e.target.disabled = false;
                     }
                 });
             });
@@ -2621,6 +2660,8 @@
                 filteredDocs.forEach(data => {
                     const tr = document.createElement('tr');
                     const isVisited = data.status === 'Visited';
+                    const isOnlineBooking = data.entry_source === 'online';
+                    if (isOnlineBooking) tr.classList.add('online-booking-row');
                     if (isVisited) tr.classList.add('completed-row');
 
                     const isOnline = data.payment_type === 'Online' ? 'selected' : '';
@@ -2751,11 +2792,22 @@
                             try {
                                 const deletedDocInfo = currentDayDocsById[docId];
                                 await deleteDoc(doc(db, "appointments", docId));
+
+                                // Confirm the document is actually gone before treating the
+                                // slot as freed. If security rules silently reject the delete,
+                                // deleteDoc() can resolve without throwing, which is what was
+                                // leaving the time slot stuck as "Booked" everywhere else.
+                                const stillExists = await getDoc(doc(db, "appointments", docId));
+                                if (stillExists.exists()) {
+                                    throw new Error("Delete did not take effect (document still exists after deleteDoc). This usually means your Firestore security rules are blocking delete operations for this app.");
+                                }
+
                                 if (deletedDocInfo && deletedDocInfo.service_type && deletedDocInfo.appointment_date) {
                                     await reassignDailyTokens(db, deletedDocInfo.service_type, deletedDocInfo.appointment_date);
                                 }
                             } catch (err) {
                                 console.error("Firestore document erasure operation failed: ", err);
+                                alert("Couldn't delete this appointment, so its time slot was NOT freed. " + (err && err.message ? err.message : "Please try again or check your Firestore permissions."));
                             }
                         }
                     });

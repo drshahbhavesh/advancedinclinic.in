@@ -750,6 +750,21 @@
         document.getElementById('createAppointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // Guard against double-clicking Submit, which was creating two
+            // identical appointments. Lock the button out for 10 seconds
+            // starting the instant the click is handled.
+            if (submitBtn.disabled) return;
+            const submitBtnOriginalText = submitBtn.textContent;
+            let submitLockTimer = null;
+            const unlockSubmitBtn = () => {
+                if (submitLockTimer) clearTimeout(submitLockTimer);
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtnOriginalText;
+            };
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Please wait…";
+            submitLockTimer = setTimeout(unlockSubmitBtn, 10000);
+
             const serviceType = serviceInput.value;
             const appointmentDate = dateInput.value;
             
@@ -775,6 +790,7 @@
                     appointmentTime = computedSlot;
                 } else {
                     alert("No remaining available time slots found for this date. Please enter a time manually.");
+                    unlockSubmitBtn();
                     return;
                 }
             }
@@ -862,6 +878,7 @@
             } catch (err) {
                 console.error("Error saving record data payload: ", err);
                 alert("Failed to save record.");
+                unlockSubmitBtn();
             }
         });
 
