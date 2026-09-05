@@ -429,7 +429,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { reassignDailyTokens, countStillWaitingAhead } from "./token-utils.js";
 
         const firebaseConfig = {
@@ -838,34 +838,52 @@
                     alert("Appointment updated successfully!");
                     window.location.href = "admin.html";
                 } else {
-                    const newDocRef = await addDoc(collection(db, "appointments"), {
-                        ...appointmentPayload,
-                        follow_up: "",
-                        call_back: "",
-                        status: "Booked",
-                        entry_source: "walkin",
-                        createdAt: new Date()
-                    });
+                    // Deterministic doc ID (phone+date+time) instead of
+                    // addDoc's random one — same protection as
+                    // appointment.html: a genuine accidental double-submit
+                    // (double click, a slow network causing a retry) then
+                    // hits the same document instead of checking the same
+                    // patient in twice, enforced at the database level, not
+                    // just by the submit-lock above.
+                    const bookingId = phone.replace(/\D/g, '') + '_' + appointmentDate + '_' + appointmentTime.replace(':', '');
+                    const bookingRef = doc(db, "appointments", bookingId);
+                    const existingBooking = await getDoc(bookingRef);
+                    const isDuplicate = existingBooking.exists();
 
-                    if (!currentPatientId && currentPatientDocIds.length > 0) {
-                        await Promise.all(
-                            currentPatientDocIds.map(id =>
-                                updateDoc(doc(db, "appointments", id), { patient_id: finalPatientId })
-                                    .catch(err => console.error("Patient ID backfill failed for", id, err))
-                            )
-                        );
+                    if (!isDuplicate) {
+                        await setDoc(bookingRef, {
+                            ...appointmentPayload,
+                            follow_up: "",
+                            call_back: "",
+                            status: "Booked",
+                            entry_source: "walkin",
+                            createdAt: new Date()
+                        });
+
+                        if (!currentPatientId && currentPatientDocIds.length > 0) {
+                            await Promise.all(
+                                currentPatientDocIds.map(id =>
+                                    updateDoc(doc(db, "appointments", id), { patient_id: finalPatientId })
+                                        .catch(err => console.error("Patient ID backfill failed for", id, err))
+                                )
+                            );
+                        }
                     }
 
                     const dayEntries = await reassignDailyTokens(db, serviceType, appointmentDate);
-                    const mine = dayEntries.find(e => e.id === newDocRef.id);
+                    const mine = dayEntries.find(e => e.id === bookingId);
                     const tokenNumber = mine ? mine.token_number : '?';
-                    const aheadCount = mine ? countStillWaitingAhead(dayEntries, newDocRef.id) : 0;
+                    const aheadCount = mine ? countStillWaitingAhead(dayEntries, bookingId) : 0;
 
                     const ampmCheck = parseInt(appointmentTime.split(':')[0]);
                     const displayHr = ampmCheck % 12 === 0 ? 12 : ampmCheck % 12;
                     const displayStr = `${String(displayHr).padStart(2, '0')}:${appointmentTime.split(':')[1]} ${ampmCheck >= 12 ? 'PM' : 'AM'}`;
 
-                    alert(`Walk-in checked in! Token #${tokenNumber} — Slot: ${displayStr}\n${aheadCount} patient(s) still ahead in the queue.`);
+                    if (isDuplicate) {
+                        alert(`This patient is already checked in at this exact date/time — Token #${tokenNumber}. Not creating a second entry.`);
+                    } else {
+                        alert(`Walk-in checked in! Token #${tokenNumber} — Slot: ${displayStr}\n${aheadCount} patient(s) still ahead in the queue.`);
+                    }
                     showLastTokenReadout(tokenNumber, name, displayStr, aheadCount);
 
                     document.getElementById('createAppointmentForm').reset();

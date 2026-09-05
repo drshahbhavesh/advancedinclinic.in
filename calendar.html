@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Availability Calendar - Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quando&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            min-height: 100%;
+        }
+        body {
+            font-family: "Open Sans", sans-serif;
+            color: #49444c;
+            background-color: #fcfaf9;
+        }
+
+        /* ---------- Login screen (Doctor only) ---------- */
+        #loginScreen {
+            position: fixed;
+            inset: 0;
+            background: #fcfaf9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: #fff;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 6px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+        .login-box h1 {
+            font-family: "Open Sans", sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: #3a3a3a;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .login-box .login-subtext {
+            font-size: 13px;
+            color: #7a7a7a;
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .login-field {
+            margin-bottom: 16px;
+        }
+        .login-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #7a7a7a;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .login-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            font-size: 15px;
+            background: #f5f2ea;
+            color: #49444c;
+            outline: none;
+        }
+        .login-field input:focus {
+            border-color: #72bfba;
+        }
+        .login-error {
+            color: #c0392b;
+            font-size: 13px;
+            margin-bottom: 14px;
+            min-height: 16px;
+            text-align: center;
+        }
+        .login-submit-btn {
+            width: 100%;
+            background: #87008c;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 11px;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+        .login-submit-btn:hover {
+            background-color: #630066;
+        }
+
+        /* ---------- Nav ---------- */
+        .navbar {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 30px;
+            border-bottom: 3px solid #87008c;
+        }
+        .navbar .logo {
+            font-family: "Open Sans", sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #3a3a3a;
+        }
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: #3a3a3a;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .nav-links a:hover {
+            color: #87008c;
+        }
+        .nav-links .appointment-btn {
+            background-color: #72bfba;
+            color: #fff;
+            padding: 9px 20px;
+            border-radius: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+        .nav-links .appointment-btn:hover {
+            background-color: #5aa9a4;
+        }
+
+        /* ---------- Page layout ---------- */
+        .calendar-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 24px 60px;
+        }
+        .page-title {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 1.9rem;
+            color: #49444c;
+            margin-bottom: 4px;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #7a7a7a;
+            margin-bottom: 20px;
+        }
+        .legend {
+            display: flex;
+            gap: 22px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: #7a7a7a;
+        }
+        .legend-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .legend-dot.dot-unavailable { background: #d9534f; }
+        .legend-dot.dot-custom { background: #cc9955; }
+        .legend-dot.dot-normal { background: #72bfba; }
+
+        .calendar-grid-area {
+            display: flex;
+            gap: 28px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .calendar-panel {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: -8px 8px 30px 4px rgba(143,158,170,0.12);
+            padding: 20px;
+            flex: 1 1 340px;
+        }
+        #calendarInline {
+            width: 100%;
+        }
+        .flatpickr-calendar.inline {
+            width: 100%;
+            box-shadow: none;
+            border: none;
+        }
+        .flatpickr-day.day-unavailable {
+            background: rgba(217,83,79,0.15);
+            color: #c0392b;
+            border-color: transparent;
+        }
+        .flatpickr-day.day-unavailable:hover {
+            background: rgba(217,83,79,0.28);
+        }
+        .flatpickr-day.day-custom {
+            background: rgba(204,153,85,0.18);
+            color: #8a6314;
+            border-color: transparent;
+        }
+        .flatpickr-day.day-custom:hover {
+            background: rgba(204,153,85,0.3);
+        }
+
+        .edit-panel {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: -8px 8px 30px 4px rgba(143,158,170,0.12);
+            padding: 24px 26px;
+            flex: 1 1 320px;
+            min-width: 280px;
+        }
+        .edit-panel h2 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 1.4rem;
+            color: #49444c;
+            margin-bottom: 4px;
+        }
+        .edit-panel .edit-subtext {
+            font-size: 13px;
+            color: #7a7a7a;
+            margin-bottom: 18px;
+        }
+        .edit-panel .placeholder-note {
+            font-size: 14px;
+            color: #7a7a7a;
+            padding: 20px 0;
+        }
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(125,152,163,0.2);
+        }
+        .toggle-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #87008c;
+            cursor: pointer;
+        }
+        .toggle-row label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #49444c;
+            cursor: pointer;
+        }
+        .shift-block {
+            margin-bottom: 18px;
+        }
+        .shift-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .shift-block-header span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #49444c;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .shift-block-header .closed-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            color: #7a7a7a;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .shift-block-header .closed-toggle input {
+            accent-color: #87008c;
+            cursor: pointer;
+        }
+        .shift-times {
+            display: flex;
+            gap: 12px;
+        }
+        .shift-times > div {
+            flex: 1;
+        }
+        .shift-times label {
+            display: block;
+            font-size: 12px;
+            color: #7a7a7a;
+            margin-bottom: 5px;
+        }
+        .shift-times input[type="time"] {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            font-family: "Open Sans", sans-serif;
+            font-size: 14px;
+            background: #f5f2ea;
+            color: #49444c;
+            outline: none;
+        }
+        .shift-times input[type="time"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .shift-times input[type="time"]:focus {
+            border-color: #72bfba;
+        }
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 11px 20px;
+            font-size: 13.5px;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        .btn-save {
+            background-color: #72bfba;
+            color: #fff;
+        }
+        .btn-save:hover { background-color: #5aa9a4; }
+        .btn-reset {
+            background-color: #f5f2ea;
+            color: #49444c;
+            border: 1px solid rgba(125,152,163,0.31);
+        }
+        .btn-reset:hover { background-color: #ece7da; }
+        .save-status {
+            font-size: 13px;
+            margin-top: 12px;
+            min-height: 16px;
+        }
+        .save-status.success { color: #2e8b57; }
+        .save-status.error { color: #c0392b; }
+
+        .overrides-section {
+            margin-top: 32px;
+        }
+        .overrides-section h3 {
+            font-family: "Quando", serif;
+            font-weight: 400;
+            font-size: 1.2rem;
+            color: #49444c;
+            margin-bottom: 14px;
+        }
+        .overrides-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .override-row {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: -4px 4px 16px 2px rgba(143,158,170,0.1);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .override-row .override-date {
+            font-weight: 600;
+            color: #49444c;
+            font-size: 14.5px;
+            min-width: 140px;
+        }
+        .override-row .override-summary {
+            font-size: 13px;
+            color: #7a7a7a;
+            flex: 1;
+        }
+        .override-row .override-summary.tag-unavailable {
+            color: #c0392b;
+            font-weight: 600;
+        }
+        .override-row-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .override-row-actions button {
+            background: none;
+            border: 1px solid rgba(125,152,163,0.31);
+            border-radius: 3px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #49444c;
+        }
+        .override-row-actions button:hover {
+            background: #f5f2ea;
+        }
+        .override-row-actions button.remove-btn {
+            color: #c0392b;
+        }
+        .no-overrides {
+            font-size: 14px;
+            color: #7a7a7a;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>Doctor Login</h1>
+            <div class="login-subtext">The availability calendar is only available to the doctor account.</div>
+            <div class="login-field">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" autocomplete="username">
+            </div>
+            <div class="login-field">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" autocomplete="current-password">
+            </div>
+            <div class="login-error" id="loginError"></div>
+            <button class="login-submit-btn" id="loginSubmitBtn">Log In</button>
+        </div>
+    </div>
+
+    <div id="calendarContainer" style="display: none;">
+        <div class="navbar">
+            <div class="logo">Admin Dashboard</div>
+            <div class="nav-links">
+                <a href="admin.html">Appointments</a>
+                <a href="analytics.html">Analytics</a>
+                <a href="index.html">Site</a>
+                <a href="appointment.html" class="appointment-btn">View Bookings Page</a>
+                <a href="#" id="logoutLink">Log Out</a>
+            </div>
+        </div>
+
+        <div class="calendar-wrap">
+            <div class="page-title">Availability Calendar</div>
+            <div class="page-subtitle">Block off days the clinic is closed, or adjust shift timings for individual dates. Changes apply immediately to the public booking page.</div>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-dot dot-unavailable"></span> Closed to bookings</div>
+                <div class="legend-item"><span class="legend-dot dot-custom"></span> Custom hours</div>
+                <div class="legend-item"><span class="legend-dot dot-normal"></span> Normal hours</div>
+            </div>
+
+            <div class="calendar-grid-area">
+                <div class="calendar-panel">
+                    <div id="calendarInline"></div>
+                </div>
+
+                <div class="edit-panel" id="editPanel">
+                    <div class="placeholder-note" id="editPlaceholder">Select a date on the calendar to view or change its availability.</div>
+
+                    <div id="editForm" style="display: none;">
+                        <h2 id="editDateHeading">&mdash;</h2>
+                        <div class="edit-subtext" id="editDateSubtext"></div>
+
+                        <div class="toggle-row">
+                            <input type="checkbox" id="unavailableToggle">
+                            <label for="unavailableToggle">Closed all day &mdash; not bookable by patients</label>
+                        </div>
+
+                        <div id="shiftFields">
+                            <div class="shift-block">
+                                <div class="shift-block-header">
+                                    <span>Morning Shift</span>
+                                    <label class="closed-toggle">
+                                        <input type="checkbox" id="morningClosedToggle"> No morning shift
+                                    </label>
+                                </div>
+                                <div class="shift-times">
+                                    <div>
+                                        <label for="morningStart">Start</label>
+                                        <input type="time" id="morningStart">
+                                    </div>
+                                    <div>
+                                        <label for="morningEnd">End</label>
+                                        <input type="time" id="morningEnd">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="shift-block">
+                                <div class="shift-block-header">
+                                    <span>Evening Shift</span>
+                                    <label class="closed-toggle">
+                                        <input type="checkbox" id="eveningClosedToggle"> No evening shift
+                                    </label>
+                                </div>
+                                <div class="shift-times">
+                                    <div>
+                                        <label for="eveningStart">Start</label>
+                                        <input type="time" id="eveningStart">
+                                    </div>
+                                    <div>
+                                        <label for="eveningEnd">End</label>
+                                        <input type="time" id="eveningEnd">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="edit-actions">
+                            <button class="btn btn-save" id="saveBtn">Save Changes</button>
+                            <button class="btn btn-reset" id="resetBtn">Reset to Default Hours</button>
+                        </div>
+                        <div class="save-status" id="saveStatus"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overrides-section">
+                <h3>Upcoming Overrides</h3>
+                <div class="overrides-list" id="overridesList">
+                    <div class="no-overrides">No upcoming days have custom hours or closures.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDstFH1FUnW3YQVk-XUWC5rjMWuWxo5jjA",
+            authDomain: "appointment-booking-1f0d0.firebaseapp.com",
+            projectId: "appointment-booking-1f0d0",
+            storageBucket: "appointment-booking-1f0d0.firebasestorage.app",
+            messagingSenderId: "572909099522",
+            appId: "1:572909099522:web:a40cb6dc7fafe8ea7e651b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Defaults mirrored from appointment.html's generateTimeSlots()
+        const DEFAULT_HOURS = {
+            morning_start: "10:00",
+            morning_end: "13:30",
+            evening_start: "16:30",
+            evening_end: "19:30"
+        };
+
+        // ---------- Doctor-only login (mirrors admin.html / analytics.html) ----------
+        const DOCTOR_CREDENTIALS = { username: 'Bhavesh', password: 'Bha@123' };
+
+        const loginScreen = document.getElementById('loginScreen');
+        const calendarContainer = document.getElementById('calendarContainer');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const logoutLink = document.getElementById('logoutLink');
+
+        function attemptLogin() {
+            const u = loginUsername.value.trim();
+            const p = loginPassword.value;
+            if (u === DOCTOR_CREDENTIALS.username && p === DOCTOR_CREDENTIALS.password) {
+                sessionStorage.setItem('userRole', 'doctor');
+                enterCalendar();
+            } else {
+                loginError.textContent = "Incorrect username or password.";
+                loginPassword.value = "";
+            }
+        }
+
+        function enterCalendar() {
+            loginScreen.style.display = "none";
+            calendarContainer.style.display = "block";
+            initCalendar();
+        }
+
+        loginSubmitBtn.addEventListener('click', attemptLogin);
+        loginPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptLogin(); });
+        loginUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptLogin(); });
+
+        logoutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            sessionStorage.removeItem('userRole');
+            calendarContainer.style.display = "none";
+            loginScreen.style.display = "flex";
+            loginUsername.value = "";
+            loginPassword.value = "";
+            loginError.textContent = "";
+        });
+
+        // ---------- Calendar logic ----------
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dt = new Date(y, m - 1, d);
+            return dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        let availabilityCache = {}; // dateStr -> doc data
+        let fpInstance = null;
+        let selectedDateStr = null;
+
+        const editPlaceholder = document.getElementById('editPlaceholder');
+        const editForm = document.getElementById('editForm');
+        const editDateHeading = document.getElementById('editDateHeading');
+        const editDateSubtext = document.getElementById('editDateSubtext');
+        const unavailableToggle = document.getElementById('unavailableToggle');
+        const shiftFields = document.getElementById('shiftFields');
+        const morningStart = document.getElementById('morningStart');
+        const morningEnd = document.getElementById('morningEnd');
+        const eveningStart = document.getElementById('eveningStart');
+        const eveningEnd = document.getElementById('eveningEnd');
+        const morningClosedToggle = document.getElementById('morningClosedToggle');
+        const eveningClosedToggle = document.getElementById('eveningClosedToggle');
+        const saveBtn = document.getElementById('saveBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const saveStatus = document.getElementById('saveStatus');
+        const overridesList = document.getElementById('overridesList');
+
+        async function loadAllAvailability() {
+            availabilityCache = {};
+            const snap = await getDocs(collection(db, "availability"));
+            snap.forEach(docSnap => {
+                availabilityCache[docSnap.id] = docSnap.data();
+            });
+        }
+
+        function classifyDate(dateStr) {
+            const entry = availabilityCache[dateStr];
+            if (!entry) return 'normal';
+            if (entry.unavailable) return 'unavailable';
+            return 'custom';
+        }
+
+        function initCalendar() {
+            loadAllAvailability().then(() => {
+                renderFlatpickr();
+                renderOverridesList();
+            });
+        }
+
+        function renderFlatpickr() {
+            if (fpInstance) {
+                fpInstance.destroy();
+            }
+            fpInstance = flatpickr("#calendarInline", {
+                inline: true,
+                minDate: "today",
+                dateFormat: "Y-m-d",
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    const dateStr = toLocalDateStr(dayElem.dateObj);
+                    const cls = classifyDate(dateStr);
+                    if (cls === 'unavailable') dayElem.classList.add('day-unavailable');
+                    if (cls === 'custom') dayElem.classList.add('day-custom');
+                },
+                onChange: function(selectedDates, dateStr) {
+                    openEditPanel(dateStr);
+                }
+            });
+        }
+
+        function openEditPanel(dateStr) {
+            selectedDateStr = dateStr;
+            editPlaceholder.style.display = "none";
+            editForm.style.display = "block";
+            saveStatus.textContent = "";
+            saveStatus.className = "save-status";
+
+            editDateHeading.textContent = formatDisplayDate(dateStr);
+            editDateSubtext.textContent = dateStr;
+
+            const entry = availabilityCache[dateStr] || {};
+
+            unavailableToggle.checked = !!entry.unavailable;
+
+            const mStart = entry.morning_start !== undefined ? entry.morning_start : DEFAULT_HOURS.morning_start;
+            const mEnd = entry.morning_end !== undefined ? entry.morning_end : DEFAULT_HOURS.morning_end;
+            const eStart = entry.evening_start !== undefined ? entry.evening_start : DEFAULT_HOURS.evening_start;
+            const eEnd = entry.evening_end !== undefined ? entry.evening_end : DEFAULT_HOURS.evening_end;
+
+            morningClosedToggle.checked = (mStart === "" && mEnd === "");
+            eveningClosedToggle.checked = (eStart === "" && eEnd === "");
+
+            morningStart.value = mStart || DEFAULT_HOURS.morning_start;
+            morningEnd.value = mEnd || DEFAULT_HOURS.morning_end;
+            eveningStart.value = eStart || DEFAULT_HOURS.evening_start;
+            eveningEnd.value = eEnd || DEFAULT_HOURS.evening_end;
+
+            refreshFieldStates();
+        }
+
+        function refreshFieldStates() {
+            const closedAllDay = unavailableToggle.checked;
+            shiftFields.style.opacity = closedAllDay ? '0.45' : '1';
+
+            const morningClosed = morningClosedToggle.checked;
+            const eveningClosed = eveningClosedToggle.checked;
+
+            morningStart.disabled = closedAllDay || morningClosed;
+            morningEnd.disabled = closedAllDay || morningClosed;
+            eveningStart.disabled = closedAllDay || eveningClosed;
+            eveningEnd.disabled = closedAllDay || eveningClosed;
+            morningClosedToggle.disabled = closedAllDay;
+            eveningClosedToggle.disabled = closedAllDay;
+        }
+
+        unavailableToggle.addEventListener('change', refreshFieldStates);
+        morningClosedToggle.addEventListener('change', refreshFieldStates);
+        eveningClosedToggle.addEventListener('change', refreshFieldStates);
+
+        saveBtn.addEventListener('click', async () => {
+            if (!selectedDateStr) return;
+            saveBtn.disabled = true;
+            saveStatus.className = "save-status";
+            saveStatus.textContent = "Saving…";
+
+            const payload = {
+                unavailable: unavailableToggle.checked,
+                morning_start: morningClosedToggle.checked ? "" : morningStart.value,
+                morning_end: morningClosedToggle.checked ? "" : morningEnd.value,
+                evening_start: eveningClosedToggle.checked ? "" : eveningStart.value,
+                evening_end: eveningClosedToggle.checked ? "" : eveningEnd.value,
+                updatedAt: new Date()
+            };
+
+            try {
+                await setDoc(doc(db, "availability", selectedDateStr), payload);
+                availabilityCache[selectedDateStr] = payload;
+                renderFlatpickr();
+                renderOverridesList();
+                saveStatus.textContent = "Saved.";
+                saveStatus.classList.add('success');
+            } catch (err) {
+                console.error("Failed to save availability:", err);
+                saveStatus.textContent = "Something went wrong. Please try again.";
+                saveStatus.classList.add('error');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            if (!selectedDateStr) return;
+            resetBtn.disabled = true;
+            saveStatus.className = "save-status";
+            saveStatus.textContent = "Resetting…";
+
+            try {
+                await deleteDoc(doc(db, "availability", selectedDateStr));
+                delete availabilityCache[selectedDateStr];
+                openEditPanel(selectedDateStr);
+                renderFlatpickr();
+                renderOverridesList();
+                saveStatus.textContent = "Reset to default hours.";
+                saveStatus.classList.add('success');
+            } catch (err) {
+                console.error("Failed to reset availability:", err);
+                saveStatus.textContent = "Something went wrong. Please try again.";
+                saveStatus.classList.add('error');
+            } finally {
+                resetBtn.disabled = false;
+            }
+        });
+
+        function summarizeEntry(entry) {
+            if (entry.unavailable) return { text: "Closed all day", cls: "tag-unavailable" };
+
+            const parts = [];
+            if (entry.morning_start && entry.morning_end) {
+                parts.push(`Morning ${entry.morning_start}–${entry.morning_end}`);
+            } else {
+                parts.push("Morning closed");
+            }
+            if (entry.evening_start && entry.evening_end) {
+                parts.push(`Evening ${entry.evening_start}–${entry.evening_end}`);
+            } else {
+                parts.push("Evening closed");
+            }
+            return { text: parts.join(' · '), cls: "" };
+        }
+
+        function renderOverridesList() {
+            const todayStr = toLocalDateStr(new Date());
+            const dates = Object.keys(availabilityCache)
+                .filter(d => d >= todayStr)
+                .sort();
+
+            if (dates.length === 0) {
+                overridesList.innerHTML = '<div class="no-overrides">No upcoming days have custom hours or closures.</div>';
+                return;
+            }
+
+            overridesList.innerHTML = '';
+            dates.forEach(dateStr => {
+                const entry = availabilityCache[dateStr];
+                const summary = summarizeEntry(entry);
+
+                const row = document.createElement('div');
+                row.className = 'override-row';
+                row.innerHTML = `
+                    <div class="override-date">${formatDisplayDate(dateStr)}</div>
+                    <div class="override-summary ${summary.cls}">${summary.text}</div>
+                    <div class="override-row-actions">
+                        <button class="edit-btn" type="button">Edit</button>
+                        <button class="remove-btn" type="button">Remove</button>
+                    </div>
+                `;
+
+                row.querySelector('.edit-btn').addEventListener('click', () => {
+                    if (fpInstance) fpInstance.setDate(dateStr, false);
+                    openEditPanel(dateStr);
+                    document.querySelector('.calendar-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+
+                row.querySelector('.remove-btn').addEventListener('click', async () => {
+                    try {
+                        await deleteDoc(doc(db, "availability", dateStr));
+                        delete availabilityCache[dateStr];
+                        renderFlatpickr();
+                        renderOverridesList();
+                        if (selectedDateStr === dateStr) openEditPanel(dateStr);
+                    } catch (err) {
+                        console.error("Failed to remove override:", err);
+                        alert("Something went wrong. Please try again.");
+                    }
+                });
+
+                overridesList.appendChild(row);
+            });
+        }
+
+        // Reuse an existing doctor session from admin.html/analytics.html if present.
+        if (sessionStorage.getItem('userRole') === 'doctor') {
+            enterCalendar();
+        }
+    </script>
+</body>
+</html>

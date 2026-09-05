@@ -399,7 +399,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, getDoc, getDocs, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { reassignDailyTokens, countStillWaitingAhead } from "./token-utils.js";
 
         const firebaseConfig = {
@@ -436,41 +436,82 @@
             return `${hours}:${minutes} ${ampm}`;
         }
 
-        // --- INITIALIZE FLATPICKR (GREYS OUT SUNDAYS) ---
-        flatpickr("#date", {
-            minDate: "today",
-            dateFormat: "Y-m-d", // Keeps standard data format matching Firebase
-            altInput: true,
-            altFormat: "d/m/Y", // Visual presentation
-            disable: [
-                function(date) {
-                    // Disable Sundays (0 = Sunday)
-                    return (date.getDay() === 0);
-                }
-            ],
-            onReady: function(selectedDates, dateStr, instance) {
-                // Ensure default date is valid
-                let defaultDate = new Date();
-                if (defaultDate.getDay() === 0) {
-                    defaultDate.setDate(defaultDate.getDate() + 1); // Shift to Monday
-                }
-                instance.setDate(defaultDate, true);
-            },
-            onChange: function(selectedDates, dateStr, instance) {
-                updateAvailableTimeSlots();
+        // --- DAY-LEVEL AVAILABILITY (set by the doctor in calendar.html) ---
+        const DEFAULT_HOURS = {
+            morning_start: "10:00",
+            morning_end: "13:30",
+            evening_start: "16:30",
+            evening_end: "19:30"
+        };
+
+        let availabilityMap = {}; // dateStr -> { unavailable, morning_start, morning_end, evening_start, evening_end }
+
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        async function loadAvailability() {
+            try {
+                const snap = await getDocs(collection(db, "availability"));
+                const map = {};
+                snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
+                availabilityMap = map;
+            } catch (error) {
+                console.error("Could not load availability overrides, falling back to default hours:", error);
+                availabilityMap = {};
             }
-        });
+        }
+
+        // --- INITIALIZE FLATPICKR (GREYS OUT SUNDAYS + DOCTOR-CLOSED DAYS) ---
+        async function initDatePicker() {
+            await loadAvailability();
+
+            flatpickr("#date", {
+                minDate: "today",
+                dateFormat: "Y-m-d", // Keeps standard data format matching Firebase
+                altInput: true,
+                altFormat: "d/m/Y", // Visual presentation
+                disable: [
+                    function(date) {
+                        // Disable Sundays (0 = Sunday)
+                        if (date.getDay() === 0) return true;
+                        // Disable days the doctor has marked fully closed
+                        const entry = availabilityMap[toLocalDateStr(date)];
+                        return !!(entry && entry.unavailable);
+                    }
+                ],
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Ensure default date is valid
+                    let defaultDate = new Date();
+                    while (defaultDate.getDay() === 0 || (availabilityMap[toLocalDateStr(defaultDate)] && availabilityMap[toLocalDateStr(defaultDate)].unavailable)) {
+                        defaultDate.setDate(defaultDate.getDate() + 1);
+                    }
+                    instance.setDate(defaultDate, true);
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    updateAvailableTimeSlots();
+                }
+            });
+        }
+
+        initDatePicker();
 
         // --- GENERATE AND SYNC SLOT CONFLICTS ---
-        function generateTimeSlots(service) {
+        function generateTimeSlots(service, dateStr) {
             // Laser Hair Removal uses 60-minute slots; Consultation (and anything else) uses 10-minute slots
             const interval = service === 'Laser Hair Removal' ? 60 : 10;
             const slots = [];
-            
-            function addSlotsInRange(startHour, startMin, endHour, endMin) {
+
+            function addSlotsInRange(startTime, endTime) {
+                if (!startTime || !endTime) return; // that shift is closed for this date
+                const [startHour, startMin] = startTime.split(':').map(Number);
+                const [endHour, endMin] = endTime.split(':').map(Number);
                 const startTotalMins = startHour * 60 + startMin;
                 const endTotalMins = endHour * 60 + endMin;
-                
+
                 for (let m = startTotalMins; m <= endTotalMins; m += interval) {
                     const hh = String(Math.floor(m / 60)).padStart(2, '0');
                     const mins = String(m % 60).padStart(2, '0');
@@ -478,14 +519,20 @@
                 }
             }
 
-            // Morning shift: 10:00 AM to 1:30 PM (13:30)
-            addSlotsInRange(10, 0, 13, 30);
-            
+            const entry = dateStr ? availabilityMap[dateStr] : null;
+            const morningStart = entry && entry.morning_start !== undefined ? entry.morning_start : DEFAULT_HOURS.morning_start;
+            const morningEnd = entry && entry.morning_end !== undefined ? entry.morning_end : DEFAULT_HOURS.morning_end;
+            const eveningStart = entry && entry.evening_start !== undefined ? entry.evening_start : DEFAULT_HOURS.evening_start;
+            const eveningEnd = entry && entry.evening_end !== undefined ? entry.evening_end : DEFAULT_HOURS.evening_end;
+
+            // Morning shift
+            addSlotsInRange(morningStart, morningEnd);
+
             // Add a clear text divider flag for the dropdown renderer to catch
             slots.push("DIVIDER");
 
-            // Afternoon/Evening shift: 4:30 PM (16:30) to 7:30 PM (19:30)
-            addSlotsInRange(16, 30, 19, 30);
+            // Afternoon/Evening shift
+            addSlotsInRange(eveningStart, eveningEnd);
 
             return slots;
         }
@@ -501,7 +548,7 @@
 
             if (!selectedService || !selectedDate) return;
 
-            const timeSlots = generateTimeSlots(selectedService);
+            const timeSlots = generateTimeSlots(selectedService, selectedDate);
 
             const q = query(
                 collection(db, "appointments"),
@@ -551,8 +598,11 @@
         serviceInput.addEventListener('change', updateAvailableTimeSlots);
 
         // --- HANDLE FORM SUBMISSION ---
+        const submitBtn = document.querySelector('#appointmentForm .btn-submit');
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (submitBtn.disabled) return; // already submitting — ignores a second click
+            submitBtn.disabled = true;
 
             const service = serviceInput.value;
             const name = document.getElementById('name').value;
@@ -561,29 +611,44 @@
             const time = timeSelect.value;
 
             try {
-                // Combined single transaction layout schema payload tracking
-                const newDocRef = await addDoc(collection(db, "appointments"), {
-                    service_type: service,
-                    patient_name: name,
-                    patient_phone: phone,
-                    appointment_date: date,
-                    appointment_time: time, // Send purely as 24-hr layout securely matching admin dashboard
-                    status: "Booked",
-                    entry_source: "online",
-                    createdAt: new Date(),
-                    whatsapp_sent: false, // picked up by the WhatsApp notifier bot
-                    // Placeholders prevent structural query errors on admin data loops
-                    payment: "", 
-                    payment_type: "",
-                    reference: "",
-                    follow_up: ""
-                });
+                // Deterministic doc ID (phone+date+time) instead of addDoc's
+                // random one: a genuine accidental double-submit (double
+                // click, a slow network causing a retry, two tabs) then
+                // just re-writes the SAME document instead of creating a
+                // second appointment — enforced at the database level, not
+                // just by the button-disable above.
+                const bookingId = phone.replace(/\D/g, '') + '_' + date + '_' + time.replace(':', '');
+                const bookingRef = doc(db, "appointments", bookingId);
+                const existing = await getDoc(bookingRef);
+
+                if (!existing.exists()) {
+                    await setDoc(bookingRef, {
+                        service_type: service,
+                        patient_name: name,
+                        patient_phone: phone,
+                        appointment_date: date,
+                        appointment_time: time, // Send purely as 24-hr layout securely matching admin dashboard
+                        status: "Booked",
+                        entry_source: "online",
+                        createdAt: new Date(),
+                        whatsapp_sent: false, // picked up by the WhatsApp notifier bot
+                        // Placeholders prevent structural query errors on admin data loops
+                        payment: "",
+                        payment_type: "",
+                        reference: "",
+                        follow_up: ""
+                    });
+                }
+                // If it already existed, this is a duplicate submission of the
+                // exact same booking — nothing more to write, just re-derive
+                // the same token/queue-position info the original submission
+                // already got.
 
                 // Join the shared, time-ordered token queue for this service+date.
                 const dayEntries = await reassignDailyTokens(db, service, date);
-                const mine = dayEntries.find(e => e.id === newDocRef.id);
+                const mine = dayEntries.find(e => e.id === bookingId);
                 const tokenNumber = mine ? mine.token_number : '';
-                const aheadCount = mine ? countStillWaitingAhead(dayEntries, newDocRef.id) : '';
+                const aheadCount = mine ? countStillWaitingAhead(dayEntries, bookingId) : '';
 
                 const params = new URLSearchParams({
                     name: name,
@@ -597,6 +662,7 @@
             } catch (error) {
                 console.error("Error writing to cloud database: ", error);
                 alert("Something went wrong. Please try again.");
+                submitBtn.disabled = false;
             }
         });
     </script>
